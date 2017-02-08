@@ -25,6 +25,10 @@ namespace winform
 
         private void mnuLibrary_Click(object sender, EventArgs e)
         {
+            var frm = new frmLibrary();
+            frm.ShowDialog();
+            mnuLibrary.Text = string.Format("Library ({0})", HelperImage.List().Count);
+
 
         }
 
@@ -44,12 +48,20 @@ namespace winform
                     var frm = new frmSetting();
                     frm.ShowDialog();
                 }
+                HelperImage.Load();
+                mnuLibrary.Text = string.Format("Library ({0})", HelperImage.List().Count);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
                 this.Close();
             }
+        }
+
+        private void mnuPointer_Click(object sender, EventArgs e)
+        {
+            frmPointer frm = new frmPointer();
+            frm.ShowDialog();
         }
     }
 }

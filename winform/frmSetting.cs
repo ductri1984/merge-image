@@ -67,12 +67,20 @@ namespace winform
 
         private void btnSave_Click(object sender, EventArgs e)
         {
-            HelperSetting.SetSetting(new HelperSetting_Item
+            if (MessageBox.Show("Do you want save changes ?", "Save", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                FileData = txtFileData.Text,
-                FolderBackground = txtFolderBackground.Text,
-                FolderPointer = txtFolderPointer.Text
-            });
+                HelperSetting.SetSetting(new HelperSetting_Item
+                {
+                    FileData = txtFileData.Text,
+                    FolderBackground = txtFolderBackground.Text,
+                    FolderPointer = txtFolderPointer.Text
+                });
+                this.DialogResult = DialogResult.OK;
+            }            
+        }
+
+        private void btnClose_Click(object sender, EventArgs e)
+        {
             this.Close();
         }
     }

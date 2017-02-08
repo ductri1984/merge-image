@@ -54,17 +54,41 @@
     <Compile Include="frmAbout.Designer.cs">
       <DependentUpon>frmAbout.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmBackground.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmBackground.Designer.cs">
+      <DependentUpon>frmBackground.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmLibrary.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="frmLibrary.Designer.cs">
       <DependentUpon>frmLibrary.cs</DependentUpon>
     </Compile>
+    <Compile Include="frmLibrary_Edit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmLibrary_Edit.Designer.cs">
+      <DependentUpon>frmLibrary_Edit.cs</DependentUpon>
+    </Compile>
     <Compile Include="frmMain.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="frmMain.Designer.cs">
       <DependentUpon>frmMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmPointer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmPointer.Designer.cs">
+      <DependentUpon>frmPointer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="frmPointer_Add.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="frmPointer_Add.Designer.cs">
+      <DependentUpon>frmPointer_Add.cs</DependentUpon>
     </Compile>
     <Compile Include="frmSetting.cs">
       <SubType>Form</SubType>
@@ -74,8 +98,20 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="frmLibrary.resx">
+      <DependentUpon>frmLibrary.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmLibrary_Edit.resx">
+      <DependentUpon>frmLibrary_Edit.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="frmMain.resx">
       <DependentUpon>frmMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmPointer.resx">
+      <DependentUpon>frmPointer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="frmPointer_Add.resx">
+      <DependentUpon>frmPointer_Add.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="frmSetting.resx">
       <DependentUpon>frmSetting.cs</DependentUpon>

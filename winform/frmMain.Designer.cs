@@ -33,6 +33,7 @@
             this.mnuLibrary = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.picBackground = new System.Windows.Forms.PictureBox();
+            this.mnuPointer = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picBackground)).BeginInit();
             this.SuspendLayout();
@@ -42,6 +43,7 @@
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mnuSetting,
             this.mnuLibrary,
+            this.mnuPointer,
             this.mnuAbout});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -79,6 +81,13 @@
             this.picBackground.TabIndex = 1;
             this.picBackground.TabStop = false;
             // 
+            // mnuPointer
+            // 
+            this.mnuPointer.Name = "mnuPointer";
+            this.mnuPointer.Size = new System.Drawing.Size(53, 20);
+            this.mnuPointer.Text = "Pointer";
+            this.mnuPointer.Click += new System.EventHandler(this.mnuPointer_Click);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -106,5 +115,6 @@
         private System.Windows.Forms.ToolStripMenuItem mnuLibrary;
         private System.Windows.Forms.ToolStripMenuItem mnuAbout;
         private System.Windows.Forms.PictureBox picBackground;
+        private System.Windows.Forms.ToolStripMenuItem mnuPointer;
     }
 }
