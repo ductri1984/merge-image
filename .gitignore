@@ -1,0 +1,7 @@
+*.xlsx
+*.suo
+merge-image.v12.suo
+MyHelper/obj/
+MyHelper/bin/
+winform/bin/
+winform/obj/
