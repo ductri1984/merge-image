@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using MyHelper;
 
 namespace winform
 {
@@ -16,11 +17,10 @@ namespace winform
             InitializeComponent();
         }
 
-        private string _strSetting = "";
-
         private void mnuSetting_Click(object sender, EventArgs e)
         {
-
+            var frm = new frmSetting();
+            frm.ShowDialog();
         }
 
         private void mnuLibrary_Click(object sender, EventArgs e)
@@ -35,8 +35,21 @@ namespace winform
 
         private void frmMain_Load(object sender, EventArgs e)
         {
-
-            //Application.StartupPath+
+            try
+            {
+                HelperSetting.SetFilePath(Application.StartupPath + "\\" + HelperSetting.FileName);
+                var setting = HelperSetting.GetSetting();
+                if (string.IsNullOrEmpty(setting.FileData) || string.IsNullOrEmpty(setting.FolderBackground) || string.IsNullOrEmpty(setting.FolderPointer))
+                {
+                    var frm = new frmSetting();
+                    frm.ShowDialog();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                this.Close();
+            }
         }
     }
 }
