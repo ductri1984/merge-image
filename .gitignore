@@ -5,3 +5,8 @@ MyHelper/obj/
 MyHelper/bin/
 winform/bin/
 winform/obj/
+
+research/database_compare/.vs
+research/database_compare/.vs/*
+research/database_compare/database_compare/bin/
+research/database_compare/database_compare/obj/
