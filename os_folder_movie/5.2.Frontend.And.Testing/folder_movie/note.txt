@@ -1,0 +1,2 @@
+Install-Package Newtonsoft.Json -Version 10.0.3
+Install-Package EPPlus -Version 4.5.1

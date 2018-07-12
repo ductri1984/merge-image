@@ -10,3 +10,16 @@ research/database_compare/.vs
 research/database_compare/.vs/*
 research/database_compare/database_compare/bin/
 research/database_compare/database_compare/obj/
+
+os_folder_movie/5.2.Frontend.And.Testing/folder_movie/.vs
+os_folder_movie/5.2.Frontend.And.Testing/folder_movie/.vs/*
+os_folder_movie/5.2.Frontend.And.Testing/folder_movie/packages/
+os_folder_movie/5.2.Frontend.And.Testing/folder_movie/WinForm/bin/
+os_folder_movie/5.2.Frontend.And.Testing/folder_movie/WinForm/obj/
+
+os_read_template/5.2.Frontend.And.Testing/read_template/.vs
+os_read_template/5.2.Frontend.And.Testing/read_template/.vs/*
+os_read_template/5.2.Frontend.And.Testing/read_template/packages/
+os_read_template/5.2.Frontend.And.Testing/read_template/WinForm/bin/
+os_read_template/5.2.Frontend.And.Testing/read_template/WinForm/obj/
+
