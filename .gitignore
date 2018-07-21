@@ -13,8 +13,15 @@ research/database_compare/database_compare/obj/
 
 research/FlashPlayer/.vs
 research/FlashPlayer/.vs/*
+research/FlashPlayer/packages/
 research/FlashPlayer/FlashPlayer/bin/
 research/FlashPlayer/FlashPlayer/obj/
+
+research/threejs/.vs
+research/threejs/.vs/*
+research/threejs/packages/
+research/threejs/threejs/bin/
+research/threejs/threejs/obj/
 
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/.vs
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/.vs/*
