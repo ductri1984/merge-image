@@ -1,0 +1,2 @@
+- Toolbox, right click "Choose Item"
+- COM Components / Shockwave Flash Object

@@ -11,6 +11,11 @@ research/database_compare/.vs/*
 research/database_compare/database_compare/bin/
 research/database_compare/database_compare/obj/
 
+research/FlashPlayer/.vs
+research/FlashPlayer/.vs/*
+research/FlashPlayer/FlashPlayer/bin/
+research/FlashPlayer/FlashPlayer/obj/
+
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/.vs
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/.vs/*
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/packages/
