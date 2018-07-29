@@ -17,6 +17,12 @@ research/FlashPlayer/packages/
 research/FlashPlayer/FlashPlayer/bin/
 research/FlashPlayer/FlashPlayer/obj/
 
+research/google_sheets_v4/.vs
+research/google_sheets_v4/.vs/*
+research/google_sheets_v4/packages/
+research/google_sheets_v4/ConsoleApplication1/bin/
+research/google_sheets_v4/ConsoleApplication1/obj/
+
 research/threejs/.vs
 research/threejs/.vs/*
 research/threejs/packages/
