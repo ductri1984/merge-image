@@ -8,6 +8,7 @@ winform/obj/
 
 research/database_compare/.vs
 research/database_compare/.vs/*
+research/database_compare/packages/
 research/database_compare/database_compare/bin/
 research/database_compare/database_compare/obj/
 
@@ -22,6 +23,12 @@ research/google_sheets_v4/.vs/*
 research/google_sheets_v4/packages/
 research/google_sheets_v4/ConsoleApplication1/bin/
 research/google_sheets_v4/ConsoleApplication1/obj/
+
+research/postmain_container/.vs
+research/postmain_container/.vs/*
+research/postmain_container/packages/
+research/postmain_container/GenData/bin/
+research/postmain_container/GenData/obj/
 
 research/threejs/.vs
 research/threejs/.vs/*

@@ -1,0 +1,6 @@
+Install-Package Newtonsoft.Json -Version 10.0.3
+Install-Package EPPlus -Version 4.5.1
+Install-Package Google.Apis -Version 1.35.1
+Install-Package Google.Apis.Core -Version 1.35.1
+Install-Package Google.Apis.Auth -Version 1.35.1
+Install-Package Google.Apis.Sheets.v4 -Version 1.34.0.1240
