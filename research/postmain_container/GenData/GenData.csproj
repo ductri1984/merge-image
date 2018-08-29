@@ -79,6 +79,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DTO.cs" />
     <Compile Include="GoogleSheets\V4.cs" />
     <Compile Include="HelperExcel.cs" />
     <Compile Include="Program.cs" />
