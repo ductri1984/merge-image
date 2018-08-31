@@ -150,5 +150,12 @@ namespace GenData
         public string port { get; set; }
         public List<string> host { get; set; }
         public List<string> path { get; set; }
+        public List<PMCollection_RequestQuery> query { get; set; }
+    }
+
+    public class PMCollection_RequestQuery
+    {
+        public string key { get; set; }
+        public string value { get; set; }
     }
 }
