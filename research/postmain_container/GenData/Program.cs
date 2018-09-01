@@ -30,11 +30,16 @@ namespace GenData
         static string FileAuthCollection = "collection.json";
         static string FileAuthEnvironment = "environment.json";
         static string FileCollection = "testing.json";
+        static string FileCollection1 = "testing1.json";
 
         static void Main(string[] args)
         {
             try
             {
+                string strSplit = string.Empty;
+                if (args != null && args.Length > 0)
+                    strSplit = args[0];
+
                 var folderapp = AppDomain.CurrentDomain.BaseDirectory;
                 if (folderapp[folderapp.Length - 1] != '\\')
                     folderapp += "\\";
@@ -44,12 +49,14 @@ namespace GenData
                 FileAuthCollection = folderapp + FileAuthCollection;
                 FileAuthEnvironment = folderapp + FileAuthEnvironment;
                 FileCollection = folderapp + FileCollection;
+                FileCollection1 = folderapp + FileCollection1;
 
                 if (System.IO.File.Exists(FileCollection))
                     System.IO.File.Delete(FileCollection);
-
-                //if (System.IO.File.Exists(FileSpreadsheet))
-                //    System.IO.File.Delete(FileSpreadsheet);
+                if (System.IO.File.Exists(FileCollection1))
+                    System.IO.File.Delete(FileCollection1);
+                if (System.IO.File.Exists(FileSpreadsheet))
+                    System.IO.File.Delete(FileSpreadsheet);
                 if (GoogleSheets.V4.CreateSheetFile(FileCredential, FileToken, FileSpreadsheet, GoogleSheetID, new List<string> {
                     SheetContainer,
                     SheetContainerData
@@ -110,6 +117,8 @@ namespace GenData
                                         strOrderCode = HelperExcel.GetValue(worksheet, row, col);
                                     }
 
+                                    if (item.ListOrder.Count == 0) break;
+
                                     col = 20;
                                     int colMax = col + 12;
                                     row = item.RowStart;
@@ -151,6 +160,8 @@ namespace GenData
                                             break;
                                     }
 
+                                    if (item.ListMaster.Count == 0) break;
+
                                     col = 33;
                                     row = item.RowStart;
                                     itemMaster = default(CaseMaster);
@@ -188,6 +199,9 @@ namespace GenData
 
                                 foreach (var item in lstCase)
                                 {
+                                    if (item.ListOrder.Count == 0 || item.ListMaster.Count == 0)
+                                        break;
+
                                     foreach (var itemMaster in item.ListMaster)
                                     {
                                         if (itemMaster.RowStart < 1 || itemMaster.ColStart < 1 || itemMaster.ColEnd < 1 || itemMaster.StateColStart < 1 || itemMaster.StateColEnd < 1)
@@ -342,9 +356,13 @@ namespace GenData
 
                             #region gui xuong dieu phoi
                             var lstOrderID = new List<long>();
-                            foreach (var itemCase in lstCase)
+                            //foreach (var itemCase in lstCase)
+                            //{
+                            //    lstOrderID.AddRange(itemCase.ListOrder.Select(c => Convert.ToInt64(c.ID)).ToList());
+                            //}
+                            for (long i = 1; i < 100; i++)
                             {
-                                lstOrderID.AddRange(itemCase.ListOrder.Select(c => Convert.ToInt64(c.ID)).ToList());
+                                lstOrderID.Add(i);
                             }
                             if (lstOrderID.Count > 0)
                             {
@@ -367,6 +385,31 @@ namespace GenData
 
                             foreach (var itemCase in lstCase)
                             {
+                                if (itemCase.ListOrder.Count == 0 || itemCase.ListMaster.Count == 0)
+                                    break;
+                                if (itemCase.Code == strSplit)
+                                {
+                                    if (!string.IsNullOrEmpty(FileCollection))
+                                    {
+                                        var sw = new System.IO.StreamWriter(FileCollection, false);
+                                        sw.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(objCollect));
+                                        sw.Close();
+
+                                        FileCollection = FileCollection1;
+
+                                        objCollect = new PMCollection
+                                        {
+                                            info = new PMCollection_Info
+                                            {
+                                                _postman_id = "b3f46c76-0d0a-4a46-8704-02b9a7c37df3",
+                                                name = "test1",
+                                                schema = "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+                                            },
+                                            item = new List<PMCollection_Item>()
+                                        };
+                                    }
+                                }
+
                                 if (objCollectAuth != null && objCollectAuth.item.Count > 1)
                                     objCollect.item.Add(objCollectAuth.item[1]);
 
@@ -374,7 +417,6 @@ namespace GenData
                                 GenCreateMaster(objCollect, hosttest, strSpace, itemCase);
                                 GenCOTOContainerList(objCollect, hosttest, strSpace, itemCase.Code + "_getid" + itemMaster.ID, itemMaster);
                                 GenCheckMasterLocation(objCollect, hosttest, strSpace, itemCase.Code + "_check" + itemMaster.ID, itemMaster);
-                                //GenCOTOContainerStartOffer(objCollect,hosttest,strSpace, itemCase.Code + "_startoffer" + itemMaster.ID, itemMaster);
                                 GenCOTOContainerStart(objCollect, hosttest, strSpace, itemCase.Code + "_start" + itemMaster.ID, itemMaster);
                                 GenCOTOContainerList(objCollect, hosttest, strSpace, itemCase.Code + "_getidcheck" + itemMaster.ID, itemMaster, true);
                                 if (itemMaster.ListLocation.Where(c => c.IsBreakmooc != null).Count() > 0)
@@ -387,7 +429,6 @@ namespace GenData
                                     itemMaster = itemCase.ListMaster[1];
                                     GenCOTOContainerList(objCollect, hosttest, strSpace, itemCase.Code + "_getid" + itemMaster.ID, itemMaster);
                                     GenCheckMasterLocation(objCollect, hosttest, strSpace, itemCase.Code + "_check" + itemMaster.ID, itemMaster);
-                                    //GenCOTOContainerStartOffer(objCollect, hosttest, strSpace, itemCase.Code + "_startoffer" + itemMaster.ID, itemMaster);
                                     GenCOTOContainerStart(objCollect, hosttest, strSpace, itemCase.Code + "_start" + itemMaster.ID, itemMaster);
                                     GenCOTOContainerList(objCollect, hosttest, strSpace, itemCase.Code + "_getidcheck" + itemMaster.ID, itemMaster, true);
                                     if (itemMaster.ListLocation.Where(c => c.IsBreakmooc != null).Count() > 0)
@@ -401,7 +442,6 @@ namespace GenData
                                     itemMaster = itemCase.ListMaster[2];
                                     GenCOTOContainerList(objCollect, hosttest, strSpace, itemCase.Code + "_getid" + itemMaster.ID, itemMaster);
                                     GenCheckMasterLocation(objCollect, hosttest, strSpace, itemCase.Code + "_check" + itemMaster.ID, itemMaster);
-                                    //GenCOTOContainerStartOffer(objCollect, hosttest, strSpace, itemCase.Code + "_startoffer" + itemMaster.ID, itemMaster);
                                     GenCOTOContainerStart(objCollect, hosttest, strSpace, itemCase.Code + "_start" + itemMaster.ID, itemMaster);
                                     GenCOTOContainerList(objCollect, hosttest, strSpace, itemCase.Code + "_getidcheck" + itemMaster.ID, itemMaster, true);
                                     if (itemMaster.ListLocation.Where(c => c.IsBreakmooc != null).Count() > 0)
@@ -574,6 +614,7 @@ namespace GenData
             itemAdd.request = new PMCollection_Request
             {
                 method = "POST",
+                description = itemCase.Description,
                 header = new List<PMCollection_RequestHeader>(),
                 body = new PMCollection_RequestBody
                 {
@@ -743,7 +784,7 @@ namespace GenData
                 var firstLocation = itemMaster.ListLocation.FirstOrDefault(c => c.SortReal == "1");
                 var secondLocation = itemMaster.ListLocation.FirstOrDefault(c => c.SortReal == "2");
                 if (firstLocation == null || secondLocation == null)
-                    throw new Exception("not found first, second location");
+                    throw new Exception(itemMaster.Code + " not found first, second location");
 
                 itemEvent.script.exec = new List<string>()
                 {
@@ -874,7 +915,7 @@ namespace GenData
 
             objCollect.item.Add(itemAdd);
         }
-        
+
         private static void GenCOTOContainerStart(PMCollection objCollect, string hosttest, string strSpace, string name, CaseMaster itemMaster)
         {
             var host = "";

@@ -99,6 +99,7 @@ namespace GenData
     public class PMCollection_Request
     {
         public string method { get; set; }
+        public string description { get; set; }
         public PMCollection_RequestAuth auth { get; set; }
         public List<PMCollection_RequestHeader> header { get; set; }
         public PMCollection_RequestBody body { get; set; }
