@@ -6,6 +6,37 @@ using System.Threading.Tasks;
 
 namespace GenData
 {
+    public class MasterCheck
+    {
+        public string Code { get; set; }
+        public int RowStart { get; set; }
+        public int RowEnd { get; set; }
+        public List<MasterCheck_COTOContainer> ListCOTOContainer { get; set; }
+        public List<MasterCheck_Location> ListLocation { get; set; }
+    }
+
+    public class MasterCheck_COTOContainer
+    {
+        public string OPSContainerID { get; set; }
+        public string COTOSort { get; set; }
+        public string SortFrom { get; set; }
+        public string SortTo { get; set; }
+        public string LocationFromID { get; set; }
+        public string LocationToID { get; set; }
+        public bool? IsSwap { get; set; }
+    }
+
+    public class MasterCheck_Location
+    {
+        public string OPSContainerID { get; set; }
+        public string COTOSort { get; set; }
+        public string SortFrom { get; set; }
+        public string SortTo { get; set; }
+        public string LocationFromID { get; set; }
+        public string LocationToID { get; set; }
+        public bool? IsLastEXEmptyStock { get; set; }
+    }
+
     public class Case
     {
         public string Code { get; set; }
@@ -21,6 +52,8 @@ namespace GenData
         public string Code { get; set; }
         public string ID { get; set; }
         public string OPSContainerID { get; set; }
+        public string ServiceCode { get; set; }
+        public string MergerCode { get; set; }
     }
 
     public class CaseMaster

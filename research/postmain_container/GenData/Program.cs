@@ -27,10 +27,16 @@ namespace GenData
         const string GoogleSheetID = "19KVSeofQRjeGL8iG_LQjEoCEWj0shIzaoLQ0I6qlIqM";
         const string SheetContainer = "Container";
         const string SheetContainerData = "ContainerData";
+        const string SheetCheck = "Check";
         static string FileAuthCollection = "collection.json";
         static string FileAuthEnvironment = "environment.json";
         static string FileCollection = "testing.json";
         static string FileCollection1 = "testing1.json";
+        const string ServiceIM = "NK";
+        const string ServiceEX = "XK";
+        const string ServiceCK = "CK";
+        const string ServiceCC = "CC";
+        const string ServiceCBT = "CBT";
 
         static void Main(string[] args)
         {
@@ -59,12 +65,15 @@ namespace GenData
                     System.IO.File.Delete(FileSpreadsheet);
                 if (GoogleSheets.V4.CreateSheetFile(FileCredential, FileToken, FileSpreadsheet, GoogleSheetID, new List<string> {
                     SheetContainer,
-                    SheetContainerData
+                    SheetContainerData,
+                    SheetCheck
                 }))
                 {
                     if (System.IO.File.Exists(FileSpreadsheet))
                     {
                         var lstCase = new List<Case>();
+                        var lstMasterCheck = new List<MasterCheck>();
+                        var lstMasterID = new List<string>();
 
                         using (var package = new OfficeOpenXml.ExcelPackage(new System.IO.FileInfo(FileSpreadsheet)))
                         {
@@ -91,6 +100,8 @@ namespace GenData
                                         lstCase.Add(itemAdd);
                                     }
                                 }
+                                if (itemAdd != null && itemAdd.RowEnd == 0)
+                                    itemAdd.RowEnd = itemAdd.RowStart + 20;
 
                                 foreach (var item in lstCase)
                                 {
@@ -98,7 +109,7 @@ namespace GenData
                                     item.ListMaster = new List<CaseMaster>();
 
                                     col = 5;
-                                    int add = 3;
+                                    int add = 5;
                                     int current = 0;
                                     row = item.RowStart + (current * add);
                                     var strOrderCode = HelperExcel.GetValue(worksheet, row, col);
@@ -106,15 +117,21 @@ namespace GenData
                                     {
                                         var strOrderID = HelperExcel.GetValue(worksheet, row + 1, col);
                                         var strOPSContainerID = HelperExcel.GetValue(worksheet, row + 2, col);
+                                        var strServiceCode = HelperExcel.GetValue(worksheet, row + 3, col);
+                                        var strMergerCode = HelperExcel.GetValue(worksheet, row + 4, col);
                                         item.ListOrder.Add(new CaseOrder
                                         {
                                             Code = strOrderCode,
                                             ID = strOrderID,
-                                            OPSContainerID = strOPSContainerID
+                                            OPSContainerID = strOPSContainerID,
+                                            ServiceCode = strServiceCode,
+                                            MergerCode = strMergerCode
                                         });
                                         current++;
                                         row = item.RowStart + (current * add);
                                         strOrderCode = HelperExcel.GetValue(worksheet, row, col);
+                                        if (row >= item.RowEnd)
+                                            break;
                                     }
 
                                     if (item.ListOrder.Count == 0) break;
@@ -278,6 +295,112 @@ namespace GenData
                                 }
                             }
                             #endregion
+
+                            worksheet = HelperExcel.GetWorksheetByName(package, SheetCheck);
+                            #region SheetCheck
+                            if (worksheet != null && worksheet.Dimension != null)
+                            {
+                                int row = 1, col = 1, rowMax = 2000;
+                                var itemAdd = default(MasterCheck);
+                                for (row = 4; row <= worksheet.Dimension.End.Row && row < rowMax; row++)
+                                {
+                                    col = 2;
+                                    var strMasterCode = HelperExcel.GetValue(worksheet, row, col);
+                                    col++;
+                                    var strCaseDescription = HelperExcel.GetValue(worksheet, row, col);
+                                    if (!string.IsNullOrEmpty(strMasterCode))
+                                    {
+                                        if (itemAdd != null)
+                                            itemAdd.RowEnd = row - 1;
+                                        itemAdd = new MasterCheck();
+                                        itemAdd.Code = strMasterCode;
+                                        itemAdd.RowStart = row;
+                                        lstMasterCheck.Add(itemAdd);
+                                    }
+                                }
+                                if (itemAdd != null && itemAdd.RowEnd == 0)
+                                    itemAdd.RowEnd = itemAdd.RowStart + 20;
+
+                                var strOrderCode = string.Empty;
+                                foreach (var itemCheck in lstMasterCheck)
+                                {
+                                    itemCheck.ListCOTOContainer = new List<MasterCheck_COTOContainer>();
+                                    itemCheck.ListLocation = new List<MasterCheck_Location>();
+
+                                    for (int cotosort = 1; cotosort <= 5; cotosort++)
+                                    {
+                                        col = 3 + (cotosort - 1) * 3;
+                                        int add = 4;
+                                        int current = 0;
+                                        row = itemCheck.RowStart + (current * add);
+                                        strOrderCode = HelperExcel.GetValue(worksheet, row, col);
+                                        while (!string.IsNullOrEmpty(strOrderCode))
+                                        {
+                                            var strOrderID = HelperExcel.GetValue(worksheet, row + 1, col);
+                                            var strLocationFromID = HelperExcel.GetValue(worksheet, row + 1, col + 1);
+                                            var strLocationToID = HelperExcel.GetValue(worksheet, row + 1, col + 2);
+                                            var strOPSContainerID = HelperExcel.GetValue(worksheet, row + 2, col);
+                                            var strSortFrom = HelperExcel.GetValue(worksheet, row + 2, col + 1);
+                                            var strSortTo = HelperExcel.GetValue(worksheet, row + 2, col + 2);
+                                            var strIsSwap = HelperExcel.GetValue(worksheet, row + 3, col + 1);
+                                            bool? isswap = null;
+                                            if (strIsSwap.Trim().ToLower() == "true")
+                                                isswap = true;
+
+                                            itemCheck.ListCOTOContainer.Add(new MasterCheck_COTOContainer
+                                            {
+                                                OPSContainerID = strOPSContainerID,
+                                                COTOSort = cotosort.ToString(),
+                                                SortFrom = strSortFrom,
+                                                SortTo = strSortTo,
+                                                LocationFromID = strLocationFromID,
+                                                LocationToID = strLocationToID,
+                                                IsSwap = isswap
+                                            });
+                                            for (int i = 0; i < 10; i++)
+                                            {
+                                                current++;
+                                                row = itemCheck.RowStart + (current * add);
+                                                strOrderCode = HelperExcel.GetValue(worksheet, row, col);
+
+                                                if (row >= itemCheck.RowEnd)
+                                                    break;
+
+                                                if (string.IsNullOrEmpty(strOrderCode))
+                                                {
+                                                    strLocationFromID = HelperExcel.GetValue(worksheet, row + 1, col + 1);
+                                                    strLocationToID = HelperExcel.GetValue(worksheet, row + 1, col + 2);
+                                                    strSortFrom = HelperExcel.GetValue(worksheet, row + 2, col + 1);
+                                                    strSortTo = HelperExcel.GetValue(worksheet, row + 2, col + 2);
+                                                    var strIsLastEXEmptyStock = HelperExcel.GetValue(worksheet, row + 3, col + 1);
+                                                    bool? islastexemptystock = null;
+                                                    if (strIsLastEXEmptyStock.Trim().ToLower() == "true")
+                                                        islastexemptystock = true;
+                                                    if (!string.IsNullOrEmpty(strLocationFromID))
+                                                    {
+                                                        itemCheck.ListLocation.Add(new MasterCheck_Location
+                                                        {
+                                                            OPSContainerID = strOPSContainerID,
+                                                            COTOSort = cotosort.ToString(),
+                                                            SortFrom = strSortFrom,
+                                                            SortTo = strSortTo,
+                                                            LocationFromID = strLocationFromID,
+                                                            LocationToID = strLocationToID,
+                                                            IsLastEXEmptyStock = islastexemptystock
+                                                        });
+                                                    }
+                                                }
+                                                else
+                                                    break;
+                                            }
+
+                                            if (row >= itemCheck.RowEnd)
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+                            #endregion
                         }
 
                         if (lstCase.Count > 0)
@@ -410,13 +533,39 @@ namespace GenData
                                     }
                                 }
 
+                                #region kiem tra du lieu
+                                var lstMasterCheckID = itemCase.ListMaster.Select(c => c.ID).Distinct().ToList();
+                                if (lstMasterID.Where(c => lstMasterCheckID.Contains(c)).Count() > 0)
+                                    throw new Exception(itemCase.Code + " list master used");
+                                else
+                                    lstMasterID.AddRange(lstMasterCheckID);
+                                var lstOPSContainerID = itemCase.ListOrder.Select(c => c.OPSContainerID).Distinct().ToList();
+                                foreach (var itemCheck in itemCase.ListMaster)
+                                {
+                                    int sort = 1;
+                                    foreach (var itemLocation in itemCheck.ListLocation.Select(c => new { c.SortOrder, c.SortReal, c.SortPrev }).OrderBy(c => c.SortReal))
+                                    {
+                                        if (itemLocation.SortOrder == itemLocation.SortPrev)
+                                            throw new Exception(itemCase.Code + " - " + itemCheck.Code + " check SortPrev");
+                                        if (itemLocation.SortReal != sort.ToString())
+                                            throw new Exception(itemCase.Code + " - " + itemCheck.Code + " check SortReal");
+                                        sort++;
+                                    }
+                                    if (itemCheck.ListOrder.Where(c => !lstOPSContainerID.Contains(c.OPSContainerID)).Count() > 0)
+                                    {
+                                        throw new Exception(itemCase.Code + " - " + itemCheck.Code + " check OPSContainerID");
+                                    }
+                                }
+                                #endregion
+
                                 if (objCollectAuth != null && objCollectAuth.item.Count > 1)
                                     objCollect.item.Add(objCollectAuth.item[1]);
 
                                 var itemMaster = itemCase.ListMaster[0];
                                 GenCreateMaster(objCollect, hosttest, strSpace, itemCase);
                                 GenCOTOContainerList(objCollect, hosttest, strSpace, itemCase.Code + "_getid" + itemMaster.ID, itemMaster);
-                                GenCheckMasterLocation(objCollect, hosttest, strSpace, itemCase.Code + "_check" + itemMaster.ID, itemMaster);
+                                GenCOTOContainerCheck(objCollect, hosttest, strSpace, itemCase.Code + "_checkdata" + itemMaster.ID, itemMaster, lstMasterCheck);
+                                GenCheckMasterLocation(objCollect, hosttest, strSpace, itemCase.Code + "_checklocation" + itemMaster.ID, itemMaster);
                                 GenCOTOContainerStart(objCollect, hosttest, strSpace, itemCase.Code + "_start" + itemMaster.ID, itemMaster);
                                 GenCOTOContainerList(objCollect, hosttest, strSpace, itemCase.Code + "_getidcheck" + itemMaster.ID, itemMaster, true);
                                 if (itemMaster.ListLocation.Where(c => c.IsBreakmooc != null).Count() > 0)
@@ -428,7 +577,8 @@ namespace GenData
                                 {
                                     itemMaster = itemCase.ListMaster[1];
                                     GenCOTOContainerList(objCollect, hosttest, strSpace, itemCase.Code + "_getid" + itemMaster.ID, itemMaster);
-                                    GenCheckMasterLocation(objCollect, hosttest, strSpace, itemCase.Code + "_check" + itemMaster.ID, itemMaster);
+                                    GenCOTOContainerCheck(objCollect, hosttest, strSpace, itemCase.Code + "_checkdata" + itemMaster.ID, itemMaster, lstMasterCheck);
+                                    GenCheckMasterLocation(objCollect, hosttest, strSpace, itemCase.Code + "_checklocation" + itemMaster.ID, itemMaster);
                                     GenCOTOContainerStart(objCollect, hosttest, strSpace, itemCase.Code + "_start" + itemMaster.ID, itemMaster);
                                     GenCOTOContainerList(objCollect, hosttest, strSpace, itemCase.Code + "_getidcheck" + itemMaster.ID, itemMaster, true);
                                     if (itemMaster.ListLocation.Where(c => c.IsBreakmooc != null).Count() > 0)
@@ -441,7 +591,8 @@ namespace GenData
                                 {
                                     itemMaster = itemCase.ListMaster[2];
                                     GenCOTOContainerList(objCollect, hosttest, strSpace, itemCase.Code + "_getid" + itemMaster.ID, itemMaster);
-                                    GenCheckMasterLocation(objCollect, hosttest, strSpace, itemCase.Code + "_check" + itemMaster.ID, itemMaster);
+                                    GenCOTOContainerCheck(objCollect, hosttest, strSpace, itemCase.Code + "_checkdata" + itemMaster.ID, itemMaster, lstMasterCheck);
+                                    GenCheckMasterLocation(objCollect, hosttest, strSpace, itemCase.Code + "_checklocation" + itemMaster.ID, itemMaster);
                                     GenCOTOContainerStart(objCollect, hosttest, strSpace, itemCase.Code + "_start" + itemMaster.ID, itemMaster);
                                     GenCOTOContainerList(objCollect, hosttest, strSpace, itemCase.Code + "_getidcheck" + itemMaster.ID, itemMaster, true);
                                     if (itemMaster.ListLocation.Where(c => c.IsBreakmooc != null).Count() > 0)
@@ -611,6 +762,14 @@ namespace GenData
             };
             itemAdd._event.Add(itemEvent);
 
+            string strIsSwap = "false";
+            string strIsBorrowEmpty = "false";
+            if (itemCase.ListOrder.Where(c => c.ServiceCode == ServiceIM).Count() > 0 && itemCase.ListOrder.Where(c => c.ServiceCode == ServiceEX).Count() > 0 &&
+                itemCase.ListOrder.Where(c => (c.ServiceCode == ServiceIM || c.ServiceCode == ServiceEX) && !string.IsNullOrEmpty(c.MergerCode)).Count() > 0)
+                strIsSwap = "true";
+            if (itemCase.ListOrder.Where(c => c.ServiceCode == ServiceCK && !string.IsNullOrEmpty(c.MergerCode)).Count() > 0)
+                strIsBorrowEmpty = "true";
+
             itemAdd.request = new PMCollection_Request
             {
                 method = "POST",
@@ -622,7 +781,7 @@ namespace GenData
                     raw = "{\"item\":{\"ID\":-1,\"DriverID\":3," +
                         "\"ETD\":\"" + DateTime.UtcNow.ToString("o") + "\",\"ETA\":\"" + DateTime.UtcNow.AddHours(1).ToString("o") + "\"," +
                         "\"ListOPSContainerID\": [" + string.Join(",", itemCase.ListOrder.Select(c => c.OPSContainerID).ToList()) + "],\"ListCOTOMasterID\":[],\"ListDITOGroupProduct\":[]," +
-                        "\"VehicleID\":" + itemMaster.VehicleID + ",\"RomoocID\":" + itemMaster.RomoocID + ",\"IsSwap\":false,\"IsNotMergeCont\":false,\"IsBorrowEmpty\":false," +
+                        "\"VehicleID\":" + itemMaster.VehicleID + ",\"RomoocID\":" + itemMaster.RomoocID + ",\"IsSwap\":" + strIsSwap + ",\"IsNotMergeCont\":false,\"IsBorrowEmpty\":" + strIsBorrowEmpty + "," +
                         "\"DriverName\":\"container1 container1\",\"DriverTel\":\"123456789\"}}"
                 },
                 url = new PMCollection_RequestURL
@@ -914,6 +1073,252 @@ namespace GenData
             });
 
             objCollect.item.Add(itemAdd);
+        }
+
+        private static void GenCOTOContainerCheck(PMCollection objCollect, string hosttest, string strSpace, string name, CaseMaster itemMaster, List<MasterCheck> lstMasterCheck)
+        {
+            var host = "";
+            var port = "";
+            string[] strs = hosttest.Split(':');
+            if (strs.Length > 1)
+            {
+                host = strs[1].Replace("//", "");
+            }
+            if (strs.Length > 2)
+            {
+                port = strs[2];
+            }
+
+            var itemCheck = lstMasterCheck.FirstOrDefault(c => c.Code == itemMaster.Code);
+            if (itemCheck != null && itemCheck.ListCOTOContainer != null && itemCheck.ListCOTOContainer.Count > 0)
+            {
+                var itemAdd = new PMCollection_Item();
+                itemAdd.name = name;
+                itemAdd.response = new List<string>();
+                itemAdd._event = new List<PMCollection_Event>();
+
+                var itemEvent = new PMCollection_Event
+                {
+                    listen = "test",
+                    script = new PMCollection_EventScript
+                    {
+                        id = Guid.NewGuid().ToString(),
+                        type = "text/javascript",
+                        exec = new List<string>()
+                    }
+                };
+
+                itemEvent.script.exec = new List<string>()
+                {
+                    "pm.test(\"" + name + "\", function () {",
+                    strSpace + "var data = pm.response.json();",
+                    strSpace + "var flag = false;",
+                    strSpace + "if(data != undefined && data != null && data.ListCOTOContainer != undefined && data.ListCOTOContainer != null && data.ListCOTOContainer.length > 0){",
+                    strSpace + strSpace + "flag = true;",
+                    strSpace + strSpace + "var current = null;",
+                    strSpace + strSpace + "var prev = null;",
+                };
+
+                var lstCheckData = new List<string>();
+                int i = 0;
+                #region ListCOTOContainer
+                foreach (var cotocontainer in itemCheck.ListCOTOContainer)
+                {
+                    if (i == 0)
+                    {
+                        if (cotocontainer.IsSwap == true)
+                        {
+                            lstCheckData.AddRange(new List<string>
+                            {
+                                strSpace + strSpace + "current = data.ListCOTOContainer[0];",
+                                strSpace + strSpace + "if(current != null && current != undefined){",
+                                strSpace + strSpace + strSpace + "var strswap = current.IsSwap + \"\";",
+                                strSpace + strSpace + strSpace + "if(current.OPSContainerID == " + cotocontainer.OPSContainerID +
+                                    " && current.LocationFromID == " + cotocontainer.LocationFromID + " && current.LocationToID == " + cotocontainer.LocationToID +
+                                    " && current.SortFrom == " + cotocontainer.SortFrom + " && current.SortTo == " + cotocontainer.SortTo +
+                                    " && current.COTOSort == " + cotocontainer.COTOSort + " && strswap == \"true\")",
+                                strSpace + strSpace + strSpace + strSpace + "prev = current;",
+                                strSpace + strSpace + "}",
+                                strSpace + strSpace + "else flag = false;",
+                            });
+                        }
+                        else
+                        {
+                            lstCheckData.AddRange(new List<string>
+                            {
+                                strSpace + strSpace + "current = data.ListCOTOContainer[0];",
+                                strSpace + strSpace + "if(current != null && current != undefined){",
+                                strSpace + strSpace + strSpace + "if(current.OPSContainerID == " + cotocontainer.OPSContainerID +
+                                    " && current.LocationFromID == " + cotocontainer.LocationFromID + " && current.LocationToID == " + cotocontainer.LocationToID +
+                                    " && current.SortFrom == " + cotocontainer.SortFrom + " && current.SortTo == " + cotocontainer.SortTo +
+                                    " && current.COTOSort == " + cotocontainer.COTOSort + ")",
+                                strSpace + strSpace + strSpace + strSpace + "prev = current;",
+                                strSpace + strSpace + "}",
+                                strSpace + strSpace + "else flag = false;",
+                            });
+                        }
+                    }
+                    else
+                    {
+                        if (cotocontainer.IsSwap == true)
+                        {
+                            lstCheckData.AddRange(new List<string>
+                            {
+                                strSpace + strSpace + "current = data.ListCOTOContainer.find(function(o){ return o.OPSContainerID == " + cotocontainer.OPSContainerID +
+                                    " && o.LocationFromID == " + cotocontainer.LocationFromID + " && o.LocationToID == " + cotocontainer.LocationToID +
+                                    " && o.SortFrom == " + cotocontainer.SortFrom + " && o.SortTo == " + cotocontainer.SortTo +
+                                    " && o.COTOSort == " + cotocontainer.COTOSort + "; });",
+                                strSpace + strSpace + "if(current == null) flag = false;",
+                                strSpace + strSpace + "else {",
+                                strSpace + strSpace + strSpace + "var strswap = current.IsSwap + \"\";",
+                                strSpace + strSpace + strSpace + "if(strswap != \"true\") flag = false;",
+                                strSpace + strSpace + "}",                                
+                            });
+                        }
+                        else
+                        {
+                            lstCheckData.AddRange(new List<string>
+                            {
+                                strSpace + strSpace + "current = data.ListCOTOContainer.find(function(o){ return o.OPSContainerID == " + cotocontainer.OPSContainerID +
+                                    " && o.LocationFromID == " + cotocontainer.LocationFromID + " && o.LocationToID == " + cotocontainer.LocationToID +
+                                    " && o.SortFrom == " + cotocontainer.SortFrom + " && o.SortTo == " + cotocontainer.SortTo +
+                                    " && o.COTOSort == " + cotocontainer.COTOSort + "; });",
+                                strSpace + strSpace + "if(current == null) flag = false;",
+                            });
+                        }
+                    }
+
+                    i++;
+                }
+                #endregion
+                i = 0;
+                #region ListLocation
+                foreach (var location in itemCheck.ListLocation)
+                {
+                    if (i == 0)
+                    {
+                        if (location.IsLastEXEmptyStock == true)
+                        {
+                            lstCheckData.AddRange(new List<string>
+                            {
+                                strSpace + strSpace + "current = data.ListLocation[0];",
+                                strSpace + strSpace + "if(current != null && current != undefined){",
+                                strSpace + strSpace + strSpace + "var strswap = current.IsLastEXEmptyStock + \"\";",
+                                strSpace + strSpace + strSpace + "if(current.OPSContainerID == " + location.OPSContainerID +
+                                    " && current.LocationFromID == " + location.LocationFromID + " && current.LocationToID == " + location.LocationToID +
+                                    " && current.SortFrom == " + location.SortFrom + " && current.SortTo == " + location.SortTo +
+                                    " && current.COTOSort == " + location.COTOSort + " && strswap == \"true\")",
+                                strSpace + strSpace + strSpace + strSpace + "prev = current;",
+                                strSpace + strSpace + "}",
+                                strSpace + strSpace + "else flag = false;",
+                            });
+                        }
+                        else
+                        {
+                            lstCheckData.AddRange(new List<string>
+                            {
+                                strSpace + strSpace + "current = data.ListLocation[0];",
+                                strSpace + strSpace + "if(current != null && current != undefined){",
+                                strSpace + strSpace + strSpace + "if(current.OPSContainerID == " + location.OPSContainerID +
+                                    " && current.LocationFromID == " + location.LocationFromID + " && current.LocationToID == " + location.LocationToID +
+                                    " && current.SortFrom == " + location.SortFrom + " && current.SortTo == " + location.SortTo +
+                                    " && current.COTOSort == " + location.COTOSort + ")",
+                                strSpace + strSpace + strSpace + strSpace + "prev = current;",
+                                strSpace + strSpace + "}",
+                                strSpace + strSpace + "else flag = false;",
+                            });
+                        }
+                    }
+                    else
+                    {
+                        if (location.IsLastEXEmptyStock == true)
+                        {
+                            lstCheckData.AddRange(new List<string>
+                            {
+                                strSpace + strSpace + "current = data.ListLocation.find(function(o){ return o.OPSContainerID == " + location.OPSContainerID +
+                                    " && o.LocationFromID == " + location.LocationFromID + " && o.LocationToID == " + location.LocationToID +
+                                    " && o.SortFrom == " + location.SortFrom + " && o.SortTo == " + location.SortTo +
+                                    " && o.COTOSort == " + location.COTOSort + "; });",
+                                strSpace + strSpace + "if(current == null) flag = false;",
+                                strSpace + strSpace + "else {",
+                                strSpace + strSpace + strSpace + "var strswap = current.IsSwap + \"\";",
+                                strSpace + strSpace + strSpace + "if(strswap != \"true\") flag = false;",
+                                strSpace + strSpace + "}",
+                            });
+                        }
+                        else
+                        {
+                            lstCheckData.AddRange(new List<string>
+                            {
+                                strSpace + strSpace + "current = data.ListLocation.find(function(o){ return o.OPSContainerID == " + location.OPSContainerID +
+                                    " && o.LocationFromID == " + location.LocationFromID + " && o.LocationToID == " + location.LocationToID +
+                                    " && o.SortFrom == " + location.SortFrom + " && o.SortTo == " + location.SortTo +
+                                    " && o.COTOSort == " + location.COTOSort + "; });",
+                                strSpace + strSpace + "if(current == null) flag = false;",
+                            });
+                        }
+                    }
+
+                    i++;
+                }
+                #endregion
+
+                itemEvent.script.exec.AddRange(lstCheckData);
+
+                itemEvent.script.exec.AddRange(new List<string>()
+                {
+                    strSpace + "}",
+                    strSpace + "pm.expect(flag).to.equal(true);",
+                    "});"
+                });
+
+                itemAdd._event.Add(itemEvent);
+
+                itemAdd.request = new PMCollection_Request
+                {
+                    method = "POST",
+                    header = new List<PMCollection_RequestHeader>(),
+                    body = new PMCollection_RequestBody
+                    {
+                        mode = "raw",
+                        raw = "{\"masterid\":" + itemMaster.ID + "}"
+                    },
+                    url = new PMCollection_RequestURL
+                    {
+                        raw = hosttest + "/api/MON/MONCON_PopupInfo_COTOContainer_StartCheck",
+                        protocol = "http",
+                        port = port,
+                        host = new List<string>() { host },
+                        path = new List<string>() { "api", "MON", "MONCON_PopupInfo_COTOContainer_StartCheck" }
+                    }
+                };
+                if (!string.IsNullOrEmpty(port))
+                {
+                    itemAdd.request.url.port = port;
+                }
+                itemAdd.request.header.Add(new PMCollection_RequestHeader
+                {
+                    key = "Content-Type",
+                    value = "application/json"
+                });
+                itemAdd.request.header.Add(new PMCollection_RequestHeader
+                {
+                    key = "k",
+                    value = "{{k}}"
+                });
+                itemAdd.request.header.Add(new PMCollection_RequestHeader
+                {
+                    key = "d",
+                    value = "{{d}}"
+                });
+                itemAdd.request.header.Add(new PMCollection_RequestHeader
+                {
+                    key = "ListActionCode",
+                    value = "ActApproved,ActContainer,ActDel,ActEdit,ActExcel,ActOPS,ViewAdmin"
+                });
+
+                objCollect.item.Add(itemAdd);
+            }
         }
 
         private static void GenCOTOContainerStart(PMCollection objCollect, string hosttest, string strSpace, string name, CaseMaster itemMaster)
