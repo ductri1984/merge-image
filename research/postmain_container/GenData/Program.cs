@@ -119,13 +119,17 @@ namespace GenData
                                         var strOPSContainerID = HelperExcel.GetValue(worksheet, row + 2, col);
                                         var strServiceCode = HelperExcel.GetValue(worksheet, row + 3, col);
                                         var strMergerCode = HelperExcel.GetValue(worksheet, row + 4, col);
+                                        var strDepotID = HelperExcel.GetValue(worksheet, row + 4, col + 1);
+                                        var strDepotReturnID = HelperExcel.GetValue(worksheet, row + 4, col + 2);
                                         item.ListOrder.Add(new CaseOrder
                                         {
                                             Code = strOrderCode,
                                             ID = strOrderID,
                                             OPSContainerID = strOPSContainerID,
                                             ServiceCode = strServiceCode,
-                                            MergerCode = strMergerCode
+                                            MergerCode = strMergerCode,
+                                            DepotID = strDepotID,
+                                            DepotReturnID = strDepotReturnID
                                         });
                                         current++;
                                         row = item.RowStart + (current * add);
@@ -136,8 +140,8 @@ namespace GenData
 
                                     if (item.ListOrder.Count == 0) break;
 
-                                    col = 20;
-                                    int colMax = col + 12;
+                                    col = 22;
+                                    int colMax = col + 15;
                                     row = item.RowStart;
                                     var itemMaster = default(CaseMaster);
                                     var strMasterCheck = HelperExcel.GetValue(worksheet, row, col);
@@ -179,11 +183,11 @@ namespace GenData
 
                                     if (item.ListMaster.Count == 0) break;
 
-                                    col = 33;
+                                    col = 38;
                                     row = item.RowStart;
                                     itemMaster = default(CaseMaster);
                                     strMasterCheck = HelperExcel.GetValue(worksheet, row, col);
-                                    colMax = col + 12;
+                                    colMax = col + 15;
                                     while (!string.IsNullOrEmpty(strMasterCheck))
                                     {
                                         itemMaster = item.ListMaster.FirstOrDefault(c => c.Code == strMasterCheck);
@@ -327,7 +331,7 @@ namespace GenData
                                     itemCheck.ListCOTOContainer = new List<MasterCheck_COTOContainer>();
                                     itemCheck.ListLocation = new List<MasterCheck_Location>();
 
-                                    for (int cotosort = 1; cotosort <= 5; cotosort++)
+                                    for (int cotosort = 1; cotosort <= 7; cotosort++)
                                     {
                                         col = 3 + (cotosort - 1) * 3;
                                         int add = 4;
@@ -1172,7 +1176,7 @@ namespace GenData
                                 strSpace + strSpace + "else {",
                                 strSpace + strSpace + strSpace + "var strswap = current.IsSwap + \"\";",
                                 strSpace + strSpace + strSpace + "if(strswap != \"true\") flag = false;",
-                                strSpace + strSpace + "}",                                
+                                strSpace + strSpace + "}",
                             });
                         }
                         else

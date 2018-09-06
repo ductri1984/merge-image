@@ -54,6 +54,8 @@ namespace GenData
         public string OPSContainerID { get; set; }
         public string ServiceCode { get; set; }
         public string MergerCode { get; set; }
+        public string DepotID { get; set; }
+        public string DepotReturnID { get; set; }
     }
 
     public class CaseMaster
