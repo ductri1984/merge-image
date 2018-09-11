@@ -970,6 +970,7 @@ namespace GenData
                 var lstOPSContainerID = itemMaster.ListOrder.Select(c => c.OPSContainerID).Distinct().ToList();
                 foreach (var opscontainerid in lstOPSContainerID)
                 {
+                    itemOrderCurrent = default(CaseMasterOrder);
                     foreach (var itemOrder in itemMaster.ListOrder.Where(c => c.OPSContainerID == opscontainerid))
                     {
                         if (itemOrderCurrent != null)
