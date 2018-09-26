@@ -47,3 +47,18 @@ os_read_template/5.2.Frontend.And.Testing/read_template/packages/
 os_read_template/5.2.Frontend.And.Testing/read_template/WinForm/bin/
 os_read_template/5.2.Frontend.And.Testing/read_template/WinForm/obj/
 
+os_excelchangedata/ionic4/node_modules/
+os_excelchangedata/DataExcel/.vs
+os_excelchangedata/DataExcel/.vs/*
+os_excelchangedata/DataExcel/packages/
+os_excelchangedata/DataExcel/APIBusiness/bin/
+os_excelchangedata/DataExcel/APIBusiness/obj/
+os_excelchangedata/DataExcel/BusinessBackground/bin/
+os_excelchangedata/DataExcel/BusinessBackground/obj/
+os_excelchangedata/DataExcel/FormsBackground/bin/
+os_excelchangedata/DataExcel/FormsBackground/obj/
+os_excelchangedata/DataExcel/WindowsBackground/bin/
+os_excelchangedata/DataExcel/WindowsBackground/obj/
+os_excelchangedata/DataExcel/WindowsBackgroundSetup/Debug/
+os_excelchangedata/DataExcel/WindowsBackgroundSetup/Release/
+
