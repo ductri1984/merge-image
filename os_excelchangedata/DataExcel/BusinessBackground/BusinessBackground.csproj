@@ -52,7 +52,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="Business.cs" />
+    <Compile Include="DTOAPIData.cs" />
+    <Compile Include="DTOAPIPush.cs" />
+    <Compile Include="DTOData.cs" />
+    <Compile Include="DTODataDetail.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

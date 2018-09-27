@@ -1,0 +1,17 @@
+<ion-header>
+
+  <ion-navbar>
+    <ion-title>settings</ion-title>
+  </ion-navbar>
+
+</ion-header>
+
+
+<ion-content padding>
+  <ion-row>token: {{token}}</ion-row>
+  <ion-item>
+    <ion-input [(ngModel)]="filename"></ion-input>
+  </ion-item>
+  <button ion-button (click)="saveData()">Save</button>
+  <ion-row>{{action}}</ion-row>
+</ion-content>

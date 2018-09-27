@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Security;
 using System.Web.SessionState;
+using System.Web.Http;
 
 namespace APIBusiness
 {
@@ -12,7 +13,14 @@ namespace APIBusiness
 
         protected void Application_Start(object sender, EventArgs e)
         {
-
+            try
+            {
+                GlobalConfiguration.Configure(WebApiConfig.Register);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
 
         protected void Session_Start(object sender, EventArgs e)
