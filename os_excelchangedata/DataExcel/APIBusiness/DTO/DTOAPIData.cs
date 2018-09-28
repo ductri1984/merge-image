@@ -8,7 +8,8 @@ namespace APIBusiness
 {
     public class DTOAPIData
     {
-        public string FileName { get; set; }
+        public DateTime? CreatedDate { get; set; }
+        public string FileName { get; set; }        
         public List<string> ListRowTitle { get; set; }
         public List<string> ListColumnTitle { get; set; }
         public List<DTOAPIDataCell> ListCells { get; set; }

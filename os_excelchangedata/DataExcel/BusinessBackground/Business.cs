@@ -78,11 +78,11 @@ namespace BusinessBackground
                                             if (worksheet != null && worksheet.Dimension != null)
                                             {
                                                 int row = 1, col = 1;
-                                                while (itemCurrent.ListColumnTitle.Count <= item.ColumnValueStart)
+                                                while (itemCurrent.ListColumnTitle.Count < item.ColumnValueStart)
                                                 {
                                                     itemCurrent.ListColumnTitle.Add(string.Empty);
                                                 }
-                                                while (itemCurrent.ListRowTitle.Count <= item.RowValueStart)
+                                                while (itemCurrent.ListRowTitle.Count < item.RowValueStart)
                                                 {
                                                     itemCurrent.ListRowTitle.Add(string.Empty);
                                                 }
@@ -213,21 +213,49 @@ namespace BusinessBackground
 
         private static void SendAPIPush(DTODataDetail item, DTOAPIData data)
         {
-            using (var client = new HttpClient())
+            if (!string.IsNullOrEmpty(item.FormatPushTitle) && !string.IsNullOrEmpty(item.FormatPushBody))
             {
-                Uri url = new Uri(item.LinkPush);
+                using (var client = new HttpClient())
+                {
+                    Uri url = new Uri(item.LinkPush);
 
-                //client.BaseAddress = new Uri(url.Scheme + "://" + url.Authority);
-                //client.DefaultRequestHeaders.Accept.Clear();
+                    client.BaseAddress = new Uri(url.Scheme + "://" + url.Authority);
+                    client.DefaultRequestHeaders.Accept.Clear();
 
-                //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                //client.Timeout = TimeSpan.FromHours(0.1);
-                //var content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
-                //var response = client.PostAsync(url.AbsolutePath, content);
-                //if (response != null && response.Result.IsSuccessStatusCode)
-                //{
-                //    HttpResponseMessage res = response.Result;
-                //}
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    client.Timeout = TimeSpan.FromHours(0.1);
+                    DTOAPIPush dto = new DTOAPIPush();
+                    List<int> lstRowID = data.ListCells.Select(c => c.Row).Distinct().ToList();
+                    List<string> lstRowTitle = new List<string>();
+                    Dictionary<int, List<string>> dicRowValue = new Dictionary<int, List<string>>();
+                    foreach (var rowid in lstRowID)
+                    {
+                        lstRowTitle.Add(data.ListRowTitle[rowid]);
+                        List<string> lstCell = new List<string>();
+                        foreach (var cell in data.ListCells.Where(c => c.Row == rowid))
+                        {
+                            string title = data.ListColumnTitle[cell.Column];
+                            lstCell.Add(string.Format("[{0}: {1}->{2}]", title, cell.ValueFrom, cell.ValueTo));
+                        }
+                        dicRowValue.Add(rowid, lstCell);
+                    }
+                    dto.Title = DateTime.Now.ToString("HH:mm") + " " + string.Join(",", lstRowTitle);
+                    dto.Body = string.Empty;
+                    foreach (var itemRow in dicRowValue)
+                    {
+                        string title = data.ListRowTitle[itemRow.Key];
+                        dto.Body += "," + title + string.Join("", itemRow.Value);
+                    }
+                    if (!string.IsNullOrEmpty(dto.Body))
+                        dto.Body = dto.Body.Substring(1);
+
+                    var content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+                    var response = client.PostAsync(url.AbsolutePath, content);
+                    if (response != null && response.Result.IsSuccessStatusCode)
+                    {
+                        HttpResponseMessage res = response.Result;
+                    }
+                }
             }
         }
     }

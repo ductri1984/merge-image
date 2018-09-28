@@ -9,7 +9,7 @@
     <ProductVersion>
     </ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{003DF413-3611-496C-ADFD-F9F62F84FC99}</ProjectGuid>
+    <ProjectGuid>{7264A8DA-CF6B-422D-9391-0E5FBE4C5B64}</ProjectGuid>
     <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -139,7 +139,6 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Global.asax" />
     <Content Include="packages.config" />
     <Content Include="Handler\UploadFile.ashx" />
     <None Include="Web.Debug.config">
@@ -150,13 +149,15 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Global.asax" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API\Data.cs" />
+    <Compile Include="DTO\DTOGet.cs" />
     <Compile Include="DTO\DTOAPIData.cs" />
-    <Compile Include="DTO\DTOTopic.cs" />
     <Compile Include="DTO\DTOAPIPush.cs" />
+    <Compile Include="DTO\DTOTopic.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -183,7 +184,7 @@
         <WebProjectProperties>
           <UseIIS>True</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>57075</DevelopmentServerPort>
+          <DevelopmentServerPort>58942</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
           <IISUrl>http://localhost:57075/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>

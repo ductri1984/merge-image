@@ -29,17 +29,12 @@ export class MyApp {
   }
 
   setup(){
-    let loading = this.loadingCtrl.create({
-      content: 'Please wait...',
-      duration: 5000
-    });
-    loading.present();
-
     this.fcm.subscribeToTopic('all');
     this.fcm.getToken().then(token => {
           console.log(token);
-          this.storage.set('token', token);
-          loading.dismiss();
+          if(token != null && token != ''){
+            this.storage.set('token', token);
+          }
     });
     this.fcm.onNotification().subscribe(data => {
           if (data.wasTapped) {
@@ -61,7 +56,9 @@ export class MyApp {
     });
     this.fcm.onTokenRefresh().subscribe(token => {
       console.log(token);
-      this.storage.set('token', token);
+      if(token != null && token != ''){
+        this.storage.set('token', token);
+      }
     });
   }
 }

@@ -35,6 +35,21 @@ export class SettingsPage {
   }
 
   saveData(){
+    // const headers =  new HttpHeaders({
+    //   'Content-Type':'application/json',
+    //   'Access-Control-Allow-Origin':'*'
+    // });
+    // this.http.post(this.urlleave, JSON.stringify({
+    //   Token: this.token,
+    //   Topic: 'test'
+    // }), { headers: headers })
+    // .subscribe(res => {
+    //   this.action = 'leaved';
+    // }, (err) => {
+    //   this.action = JSON.stringify(err);
+    //   console.log(err);
+    // });
+
     if(this.token != null && this.token != ''){
       this.leave().then((res)=> {        
         if(this.filename != null && this.filename != ''){
@@ -56,30 +71,38 @@ export class SettingsPage {
     //res.header("Access-Control-Allow-Origin", "*");
     return new Promise((resolve, reject) => {
       this.storage.get('filename').then((val) => {
-        if(val != null && val != '' && val != this.filename){
-          this.action = 'leaving ...';
-          const headers =  new HttpHeaders();
-          headers.append('Content-Type','application/json');
-          headers.append('Access-Control-Allow-Origin','*');
-          this.http.post(this.urlleave, JSON.stringify({
-            Token: this.token,
-            Topic: val
-          }), { headers: headers })
-          .toPromise().then((res) => {
-            this.action = 'leaved';
-            setTimeout(()=>{
-              //this.action = '';
-            }, 2000);
-            resolve(res);
-          },(err) => {
-            //this.action = err;
-            reject(err);
-          });
+        if(val != null && val != ''){
+          if(val != this.filename){
+            this.action = 'leaving ...';
+            const headers =  new HttpHeaders({
+              'Content-Type':'application/json',
+              'Access-Control-Allow-Origin':'*'
+            });
+            this.http.post(this.urlleave, JSON.stringify({
+              Token: this.token,
+              Topic: val
+            }), { headers: headers })
+            .toPromise().then((res) => {
+              this.action = 'leaved';
+              setTimeout(()=>{
+                //this.action = '';
+              }, 2000);
+              resolve(res);
+            },(err) => {
+              //this.action = err;
+              this.action = JSON.stringify(err);
+              reject(err);
+            });
+          }
+          else{
+            resolve(val);
+          }
         }
         else{
-          reject();
+          resolve(val);
         }
       },(err) => {
+        this.action = JSON.stringify(err);
         reject(err);
       });
     });
@@ -90,9 +113,10 @@ export class SettingsPage {
       this.storage.get('filename').then(val => {
         if(this.filename != null && this.filename != ''){        
           this.action = 'joining ...';
-          const headers =  new HttpHeaders();
-          headers.append('Content-Type','application/json');
-          headers.append('Access-Control-Allow-Origin','*');
+          const headers =  new HttpHeaders({
+            'Content-Type':'application/json',
+            'Access-Control-Allow-Origin':'*'
+          });
           this.http.post(this.urljoin, JSON.stringify({
             Token: this.token,
             Topic: this.filename
@@ -106,12 +130,16 @@ export class SettingsPage {
             resolve(res);
           }, (err) => {       
             //this.action = err;      
+            this.action = JSON.stringify(err);
             reject(err);
           });
         }
         else{
           reject();
         }        
+      },(err) => {
+        this.action = JSON.stringify(err);
+        reject(err);
       });
     });
   }

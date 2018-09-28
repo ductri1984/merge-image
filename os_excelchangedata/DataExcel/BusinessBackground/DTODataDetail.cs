@@ -23,5 +23,7 @@ namespace BusinessBackground
         public int RowTitle { get; set; }
         public string LinkData { get; set; }
         public string LinkPush { get; set; }
+        public string FormatPushTitle { get; set; }
+        public string FormatPushBody { get; set; }
     }
 }

@@ -42,6 +42,7 @@
             this.label5 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.txtCellTitle = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.txtLinkPush = new System.Windows.Forms.TextBox();
@@ -49,7 +50,10 @@
             this.label4 = new System.Windows.Forms.Label();
             this.txtRangeValue = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
-            this.txtCellTitle = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.txtFormatPushTitle = new System.Windows.Forms.TextBox();
+            this.txtFormatPushBody = new System.Windows.Forms.TextBox();
+            this.label9 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
@@ -74,7 +78,7 @@
             // btnClose
             // 
             this.btnClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnClose.Location = new System.Drawing.Point(345, 377);
+            this.btnClose.Location = new System.Drawing.Point(345, 475);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(75, 23);
             this.btnClose.TabIndex = 10;
@@ -84,7 +88,7 @@
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(264, 377);
+            this.btnSave.Location = new System.Drawing.Point(264, 475);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(75, 23);
             this.btnSave.TabIndex = 11;
@@ -94,7 +98,7 @@
             // 
             // btnDelete
             // 
-            this.btnDelete.Location = new System.Drawing.Point(183, 377);
+            this.btnDelete.Location = new System.Drawing.Point(183, 475);
             this.btnDelete.Name = "btnDelete";
             this.btnDelete.Size = new System.Drawing.Size(75, 23);
             this.btnDelete.TabIndex = 12;
@@ -177,6 +181,10 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.label9);
+            this.groupBox2.Controls.Add(this.txtFormatPushBody);
+            this.groupBox2.Controls.Add(this.label2);
+            this.groupBox2.Controls.Add(this.txtFormatPushTitle);
             this.groupBox2.Controls.Add(this.txtCellTitle);
             this.groupBox2.Controls.Add(this.label7);
             this.groupBox2.Controls.Add(this.label8);
@@ -187,10 +195,17 @@
             this.groupBox2.Controls.Add(this.label6);
             this.groupBox2.Location = new System.Drawing.Point(22, 219);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(398, 143);
+            this.groupBox2.Size = new System.Drawing.Size(398, 250);
             this.groupBox2.TabIndex = 23;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Data";
+            // 
+            // txtCellTitle
+            // 
+            this.txtCellTitle.Location = new System.Drawing.Point(6, 50);
+            this.txtCellTitle.Name = "txtCellTitle";
+            this.txtCellTitle.Size = new System.Drawing.Size(283, 20);
+            this.txtCellTitle.TabIndex = 31;
             // 
             // label7
             // 
@@ -249,12 +264,39 @@
             this.label6.TabIndex = 13;
             this.label6.Text = "Cell title";
             // 
-            // txtCellTitle
+            // label2
             // 
-            this.txtCellTitle.Location = new System.Drawing.Point(6, 50);
-            this.txtCellTitle.Name = "txtCellTitle";
-            this.txtCellTitle.Size = new System.Drawing.Size(283, 20);
-            this.txtCellTitle.TabIndex = 31;
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(295, 146);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(84, 13);
+            this.label2.TabIndex = 33;
+            this.label2.Text = "Format push title";
+            // 
+            // txtFormatPushTitle
+            // 
+            this.txtFormatPushTitle.Location = new System.Drawing.Point(6, 143);
+            this.txtFormatPushTitle.Multiline = true;
+            this.txtFormatPushTitle.Name = "txtFormatPushTitle";
+            this.txtFormatPushTitle.Size = new System.Drawing.Size(283, 41);
+            this.txtFormatPushTitle.TabIndex = 32;
+            // 
+            // txtFormatPushBody
+            // 
+            this.txtFormatPushBody.Location = new System.Drawing.Point(6, 195);
+            this.txtFormatPushBody.Multiline = true;
+            this.txtFormatPushBody.Name = "txtFormatPushBody";
+            this.txtFormatPushBody.Size = new System.Drawing.Size(283, 41);
+            this.txtFormatPushBody.TabIndex = 34;
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(295, 195);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(91, 13);
+            this.label9.TabIndex = 35;
+            this.label9.Text = "Format push body";
             // 
             // Form2
             // 
@@ -262,7 +304,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnClose;
-            this.ClientSize = new System.Drawing.Size(438, 413);
+            this.ClientSize = new System.Drawing.Size(438, 507);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.btnDelete);
             this.Controls.Add(this.btnSave);
@@ -311,5 +353,9 @@
         private System.Windows.Forms.TextBox txtLinkPush;
         private System.Windows.Forms.TextBox txtLinkData;
         private System.Windows.Forms.TextBox txtCellTitle;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox txtFormatPushTitle;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.TextBox txtFormatPushBody;
     }
 }

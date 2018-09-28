@@ -157,6 +157,8 @@ namespace FormsBackground
                                 find.RowTitle = frm.ItemEdit.RowTitle;
                                 find.LinkData = frm.ItemEdit.LinkData;
                                 find.LinkPush = frm.ItemEdit.LinkPush;
+                                find.FormatPushTitle = frm.ItemEdit.FormatPushTitle;
+                                find.FormatPushBody = frm.ItemEdit.FormatPushBody;
 
                                 dataGridView1.DataSource = null;
                                 dataGridView1.DataSource = _dtodata.ListDetails;

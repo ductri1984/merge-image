@@ -38,6 +38,8 @@ namespace FormsBackground
                 txtCellTitle.Text = HelperExcel.GetCellName(ItemEdit.RowTitle, ItemEdit.ColumnTitle);
                 txtLinkData.Text = ItemEdit.LinkData;
                 txtLinkPush.Text = ItemEdit.LinkPush;
+                txtFormatPushTitle.Text = ItemEdit.FormatPushTitle;
+                txtFormatPushBody.Text = ItemEdit.FormatPushBody;
             }
             catch (Exception ex)
             {
@@ -76,6 +78,8 @@ namespace FormsBackground
                     ItemEdit.RowTitle = HelperExcel.GetRowByCell(txtCellTitle.Text);
                     ItemEdit.LinkData = txtLinkData.Text;
                     ItemEdit.LinkPush = txtLinkPush.Text;
+                    ItemEdit.FormatPushTitle = txtFormatPushTitle.Text;
+                    ItemEdit.FormatPushBody = txtFormatPushBody.Text;
 
                     this.DialogResult = DialogResult.Yes;
                 }

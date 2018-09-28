@@ -14,6 +14,7 @@ import { SplashScreen } from '@ionic-native/splash-screen';
 import { IonicStorageModule } from '@ionic/storage';
 import { FCM } from '@ionic-native/fcm';
 import { HttpClientModule } from '@angular/common/http';
+import { Clipboard } from '@ionic-native/clipboard';
 import { SettingsPage } from '../pages/settings/settings';
 
 @NgModule({
@@ -44,6 +45,7 @@ import { SettingsPage } from '../pages/settings/settings';
     StatusBar,
     SplashScreen,
     FCM,
+    Clipboard,
     {provide: ErrorHandler, useClass: IonicErrorHandler}
   ]
 })
