@@ -37,7 +37,8 @@ export class MyApp {
           }
     });
     this.fcm.onNotification().subscribe(data => {
-          if (data.wasTapped) {
+      //let str = JSON.stringify(data);
+          if (data.wasTapped) {            
             console.log("Received in background");
             let alert = this.alertCtrl.create({
               title: '1',
@@ -48,7 +49,7 @@ export class MyApp {
           } else {
             console.log("Received in foreground");
             let alert = this.alertCtrl.create({
-              subTitle: 'Quý khách có một tin nhắn mới <br> Vui lòng vào mục thông báo để xem',
+              subTitle: 'Có thông tin mới',
               buttons: ['OK']
             });
             alert.present();

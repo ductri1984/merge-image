@@ -153,7 +153,7 @@ namespace APIBusiness.API
                         client.DefaultRequestHeaders.Accept.Clear();
 
                         client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                        client.DefaultRequestHeaders.Add("Authorization", "key=AAAA5NRCJyY:APA91bHBfzDh6iupDq7CvIw9iaNSstO20flnBWzqwWCbMq_EvHt_fG5gIp4pUfmePz1KvuHMBGFuuYNXxYjrCcnvPWVi_pQ39h5IZuQWN8ikZulEgDgB3WCHuXwW7aQXTUdtiY3ZKXNH");
+                        client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "key=AAAA5NRCJyY:APA91bHBfzDh6iupDq7CvIw9iaNSstO20flnBWzqwWCbMq_EvHt_fG5gIp4pUfmePz1KvuHMBGFuuYNXxYjrCcnvPWVi_pQ39h5IZuQWN8ikZulEgDgB3WCHuXwW7aQXTUdtiY3ZKXNH");
                         client.Timeout = TimeSpan.FromHours(0.1);
                         dynamic dynItem = new { to = "/topics/" + dto.FileName, notification = new { title = dto.Title, body = dto.Body, click_action = "" } };
                         var content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(dynItem), Encoding.UTF8, "application/json");
@@ -171,6 +171,64 @@ namespace APIBusiness.API
             }
         }
 
+        //[HttpPost]
+        //public void SendPushByData(dynamic dynParam)
+        //{
+        //    try
+        //    {
+        //        string strParam = dynParam != null ? dynParam.ToString() : string.Empty;
+        //        if (!string.IsNullOrEmpty(strParam))
+        //        {
+        //            var dto = Newtonsoft.Json.JsonConvert.DeserializeObject<DTOAPIData>(strParam);
+        //            string filepath = HttpContext.Current.Server.MapPath(FilePush);
+
+        //            List<DTOAPIPush> lst = new List<DTOAPIPush>();
+        //            string str = string.Empty;
+        //            if (System.IO.File.Exists(filepath))
+        //            {
+        //                str = System.IO.File.ReadAllText(filepath);
+        //                if (!string.IsNullOrEmpty(str))
+        //                {
+        //                    try
+        //                    {
+        //                        lst = Newtonsoft.Json.JsonConvert.DeserializeObject<List<DTOAPIPush>>(str);
+        //                    }
+        //                    catch
+        //                    {
+        //                        lst = new List<DTOAPIPush>();
+        //                    }
+        //                }
+        //            }
+        //            lst.Add(dto);
+        //            str = Newtonsoft.Json.JsonConvert.SerializeObject(lst);
+        //            System.IO.File.WriteAllText(filepath, str, System.Text.Encoding.UTF8);
+
+        //            using (var client = new HttpClient())
+        //            {
+        //                Uri url = new Uri("https://fcm.googleapis.com/fcm/send");
+
+        //                client.BaseAddress = new Uri(url.Scheme + "://" + url.Authority);
+        //                client.DefaultRequestHeaders.Accept.Clear();
+
+        //                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        //                client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "key=AAAA5NRCJyY:APA91bHBfzDh6iupDq7CvIw9iaNSstO20flnBWzqwWCbMq_EvHt_fG5gIp4pUfmePz1KvuHMBGFuuYNXxYjrCcnvPWVi_pQ39h5IZuQWN8ikZulEgDgB3WCHuXwW7aQXTUdtiY3ZKXNH");
+        //                client.Timeout = TimeSpan.FromHours(0.1);
+        //                dynamic dynItem = new { to = "/topics/" + dto.FileName, notification = new { title = dto.Title, body = dto.Body, click_action = "" } };
+        //                var content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(dynItem), Encoding.UTF8, "application/json");
+        //                var response = client.PostAsync(url.AbsolutePath, content);
+        //                if (response != null && response.Result.IsSuccessStatusCode)
+        //                {
+        //                    HttpResponseMessage res = response.Result;
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw ex;
+        //    }
+        //}
+
         [HttpPost]
         public void SendJoin(dynamic dynParam)
         {
@@ -180,46 +238,48 @@ namespace APIBusiness.API
                 if (!string.IsNullOrEmpty(strParam))
                 {
                     var dto = Newtonsoft.Json.JsonConvert.DeserializeObject<DTOTopic>(strParam);
-
-                    string filepath = HttpContext.Current.Server.MapPath(FileTopic);
-                    List<DTOTopic> lst = new List<DTOTopic>();
-                    string str = string.Empty;
-                    if (System.IO.File.Exists(filepath))
+                    if (!string.IsNullOrEmpty(dto.Topic))
                     {
-                        str = System.IO.File.ReadAllText(filepath);
-                        if (!string.IsNullOrEmpty(str))
+                        string filepath = HttpContext.Current.Server.MapPath(FileTopic);
+                        List<DTOTopic> lst = new List<DTOTopic>();
+                        string str = string.Empty;
+                        if (System.IO.File.Exists(filepath))
                         {
-                            try
+                            str = System.IO.File.ReadAllText(filepath);
+                            if (!string.IsNullOrEmpty(str))
                             {
-                                lst = Newtonsoft.Json.JsonConvert.DeserializeObject<List<DTOTopic>>(str);
-                            }
-                            catch
-                            {
-                                lst = new List<DTOTopic>();
+                                try
+                                {
+                                    lst = Newtonsoft.Json.JsonConvert.DeserializeObject<List<DTOTopic>>(str);
+                                }
+                                catch
+                                {
+                                    lst = new List<DTOTopic>();
+                                }
                             }
                         }
-                    }
-                    dto.Action = "join";
-                    lst.Add(dto);
-                    str = Newtonsoft.Json.JsonConvert.SerializeObject(lst);
-                    System.IO.File.WriteAllText(filepath, str, System.Text.Encoding.UTF8);
+                        dto.Action = "join";
+                        lst.Add(dto);
+                        str = Newtonsoft.Json.JsonConvert.SerializeObject(lst);
+                        System.IO.File.WriteAllText(filepath, str, System.Text.Encoding.UTF8);
 
-                    using (var client = new HttpClient())
-                    {
-                        Uri url = new Uri("https://iid.googleapis.com/iid/v1:batchAdd");
-
-                        client.BaseAddress = new Uri(url.Scheme + "://" + url.Authority);
-                        client.DefaultRequestHeaders.Accept.Clear();
-
-                        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                        client.DefaultRequestHeaders.Add("Authorization", "key=AAAA5NRCJyY:APA91bHBfzDh6iupDq7CvIw9iaNSstO20flnBWzqwWCbMq_EvHt_fG5gIp4pUfmePz1KvuHMBGFuuYNXxYjrCcnvPWVi_pQ39h5IZuQWN8ikZulEgDgB3WCHuXwW7aQXTUdtiY3ZKXNH");
-                        client.Timeout = TimeSpan.FromHours(0.1);
-                        dynamic dynItem = new { to = "/topics/" + dto.Topic, registration_tokens = dto.Token };
-                        var content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(dynItem), Encoding.UTF8, "application/json");
-                        var response = client.PostAsync(url.AbsolutePath, content);
-                        if (response != null && response.Result.IsSuccessStatusCode)
+                        using (var client = new HttpClient())
                         {
-                            HttpResponseMessage res = response.Result;
+                            Uri url = new Uri("https://iid.googleapis.com/iid/v1:batchAdd");
+
+                            client.BaseAddress = new Uri(url.Scheme + "://" + url.Authority);
+                            client.DefaultRequestHeaders.Accept.Clear();
+
+                            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                            client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "key=AAAA5NRCJyY:APA91bHBfzDh6iupDq7CvIw9iaNSstO20flnBWzqwWCbMq_EvHt_fG5gIp4pUfmePz1KvuHMBGFuuYNXxYjrCcnvPWVi_pQ39h5IZuQWN8ikZulEgDgB3WCHuXwW7aQXTUdtiY3ZKXNH");
+                            client.Timeout = TimeSpan.FromHours(0.1);
+                            dynamic dynItem = new { to = "/topics/" + dto.Topic, registration_tokens = new List<string> { dto.Token } };
+                            var content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(dynItem), Encoding.UTF8, "application/json");
+                            var response = client.PostAsync(url.AbsolutePath, content);
+                            if (response != null && response.Result.IsSuccessStatusCode)
+                            {
+                                HttpResponseMessage res = response.Result;
+                            }
                         }
                     }
                 }
@@ -239,46 +299,48 @@ namespace APIBusiness.API
                 if (!string.IsNullOrEmpty(strParam))
                 {
                     var dto = Newtonsoft.Json.JsonConvert.DeserializeObject<DTOTopic>(strParam);
-
-                    string filepath = HttpContext.Current.Server.MapPath(FileTopic);
-                    List<DTOTopic> lst = new List<DTOTopic>();
-                    string str = string.Empty;
-                    if (System.IO.File.Exists(filepath))
+                    if (!string.IsNullOrEmpty(dto.Topic))
                     {
-                        str = System.IO.File.ReadAllText(filepath);
-                        if (!string.IsNullOrEmpty(str))
+                        string filepath = HttpContext.Current.Server.MapPath(FileTopic);
+                        List<DTOTopic> lst = new List<DTOTopic>();
+                        string str = string.Empty;
+                        if (System.IO.File.Exists(filepath))
                         {
-                            try
+                            str = System.IO.File.ReadAllText(filepath);
+                            if (!string.IsNullOrEmpty(str))
                             {
-                                lst = Newtonsoft.Json.JsonConvert.DeserializeObject<List<DTOTopic>>(str);
-                            }
-                            catch
-                            {
-                                lst = new List<DTOTopic>();
+                                try
+                                {
+                                    lst = Newtonsoft.Json.JsonConvert.DeserializeObject<List<DTOTopic>>(str);
+                                }
+                                catch
+                                {
+                                    lst = new List<DTOTopic>();
+                                }
                             }
                         }
-                    }
-                    dto.Action = "leave";
-                    lst.Add(dto);
-                    str = Newtonsoft.Json.JsonConvert.SerializeObject(lst);
-                    System.IO.File.WriteAllText(filepath, str, System.Text.Encoding.UTF8);
+                        dto.Action = "leave";
+                        lst.Add(dto);
+                        str = Newtonsoft.Json.JsonConvert.SerializeObject(lst);
+                        System.IO.File.WriteAllText(filepath, str, System.Text.Encoding.UTF8);
 
-                    using (var client = new HttpClient())
-                    {
-                        Uri url = new Uri("https://iid.googleapis.com/iid/v1:batchRemove");
-
-                        client.BaseAddress = new Uri(url.Scheme + "://" + url.Authority);
-                        client.DefaultRequestHeaders.Accept.Clear();
-
-                        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                        client.DefaultRequestHeaders.Add("Authorization", "key=AAAA5NRCJyY:APA91bHBfzDh6iupDq7CvIw9iaNSstO20flnBWzqwWCbMq_EvHt_fG5gIp4pUfmePz1KvuHMBGFuuYNXxYjrCcnvPWVi_pQ39h5IZuQWN8ikZulEgDgB3WCHuXwW7aQXTUdtiY3ZKXNH");
-                        client.Timeout = TimeSpan.FromHours(0.1);
-                        dynamic dynItem = new { to = "/topics/" + dto.Topic, registration_tokens = dto.Token };
-                        var content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(dynItem), Encoding.UTF8, "application/json");
-                        var response = client.PostAsync(url.AbsolutePath, content);
-                        if (response != null && response.Result.IsSuccessStatusCode)
+                        using (var client = new HttpClient())
                         {
-                            HttpResponseMessage res = response.Result;
+                            Uri url = new Uri("https://iid.googleapis.com/iid/v1:batchRemove");
+
+                            client.BaseAddress = new Uri(url.Scheme + "://" + url.Authority);
+                            client.DefaultRequestHeaders.Accept.Clear();
+
+                            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                            client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", "key=AAAA5NRCJyY:APA91bHBfzDh6iupDq7CvIw9iaNSstO20flnBWzqwWCbMq_EvHt_fG5gIp4pUfmePz1KvuHMBGFuuYNXxYjrCcnvPWVi_pQ39h5IZuQWN8ikZulEgDgB3WCHuXwW7aQXTUdtiY3ZKXNH");
+                            client.Timeout = TimeSpan.FromHours(0.1);
+                            dynamic dynItem = new { to = "/topics/" + dto.Topic, registration_tokens = new List<string> { dto.Token } };
+                            var content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(dynItem), Encoding.UTF8, "application/json");
+                            var response = client.PostAsync(url.AbsolutePath, content);
+                            if (response != null && response.Result.IsSuccessStatusCode)
+                            {
+                                HttpResponseMessage res = response.Result;
+                            }
                         }
                     }
                 }

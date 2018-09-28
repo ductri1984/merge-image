@@ -19,25 +19,39 @@ namespace WindowsBackground
             InitializeComponent();
         }
 
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private Timer _timer = null;
         private Timer _timerReset = null;
         private int _reset = 0;
         private bool _islog = false;
+        private string _folderpath = string.Empty;
         private string _datapath = string.Empty;
+        private string _logpath = string.Empty;
 
         protected override void OnStart(string[] args)
         {
             try
             {
+                _folderpath = System.Configuration.ConfigurationSettings.AppSettings.Get("folder");
                 _datapath = System.Configuration.ConfigurationSettings.AppSettings.Get("data");
-                if (System.IO.File.Exists(_datapath))
+                _logpath = System.Configuration.ConfigurationSettings.AppSettings.Get("log");
+                string timer = System.Configuration.ConfigurationSettings.AppSettings.Get("timer");
+                //System.IO.File.AppendAllLines(@"C:\testlog.txt", new List<string> { "start" });
+                if (System.IO.File.Exists(_datapath) && System.IO.Directory.Exists(_folderpath) && !string.IsNullOrEmpty(_logpath) && !string.IsNullOrEmpty(timer))
                 {
+                    //System.IO.File.AppendAllLines(@"C:\testlog.txt", new List<string> { "passparam" });
+
+                    int intTimer = Convert.ToInt32(timer);
+
+                    Business.SetFolderPath(_folderpath);
                     Business.ReadFile(_datapath);
                     if (Business.Data != null)
                         _islog = Business.Data.IsLog;
 
-                    _timer = new Timer(30000);
+                    //System.IO.File.AppendAllLines(@"C:\testlog.txt", new List<string> { "pass read file" });
+
+                    LogInfo("Start service");
+
+                    _timer = new Timer(intTimer);
                     _timer.Elapsed += Timer_Elapsed;
                     _timer.Enabled = true;
 
@@ -46,11 +60,13 @@ namespace WindowsBackground
                     _timerReset.Enabled = false;
                 }
                 else
-                    this.Stop();
+                    throw new Exception("fail");
             }
             catch (Exception ex)
             {
-                LogError(ex);
+                //System.IO.File.AppendAllLines(@"C:\testlog.txt", new List<string> { ex.Message });
+                //System.IO.File.AppendAllLines(@"C:\testlog.txt", new List<string> { ex.StackTrace });
+                throw ex;
             }
         }
 
@@ -101,11 +117,14 @@ namespace WindowsBackground
         {
             if (_islog && !string.IsNullOrEmpty(message))
             {
-                log4net.LogicalThreadContext.Properties["Reset"] = _reset + "";
-                log4net.LogicalThreadContext.Properties["Date"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss fff");
-                log4net.LogicalThreadContext.Properties["DateTicks"] = DateTime.Now.Ticks.ToString();
-                log4net.LogicalThreadContext.Properties["StackTrace"] = "";
-                log.Info(message);
+                //log4net.LogicalThreadContext.Properties["Reset"] = _reset + "";
+                //log4net.LogicalThreadContext.Properties["Date"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss fff");
+                //log4net.LogicalThreadContext.Properties["DateTicks"] = DateTime.Now.Ticks.ToString();
+                //log4net.LogicalThreadContext.Properties["StackTrace"] = "";
+                //log.Info(message);
+
+                string str = string.Format("]-[{0}]-[{1}]-[{2}]-[{3}]-[", _reset, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss fff"), DateTime.Now.Ticks.ToString(), message);
+                System.IO.File.AppendAllLines(_logpath, new List<string> { str });
             }
         }
 
@@ -113,11 +132,13 @@ namespace WindowsBackground
         {
             if (_islog && ex != null)
             {
-                log4net.LogicalThreadContext.Properties["Reset"] = _reset + "";
-                log4net.LogicalThreadContext.Properties["Date"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss fff");
-                log4net.LogicalThreadContext.Properties["DateTicks"] = DateTime.Now.Ticks.ToString();
-                log4net.LogicalThreadContext.Properties["StackTrace"] = ex.StackTrace;
-                log.Error(ex.Message);
+                //log4net.LogicalThreadContext.Properties["Reset"] = _reset + "";
+                //log4net.LogicalThreadContext.Properties["Date"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss fff");
+                //log4net.LogicalThreadContext.Properties["DateTicks"] = DateTime.Now.Ticks.ToString();
+                //log4net.LogicalThreadContext.Properties["StackTrace"] = ex.StackTrace;
+                //log.Error(ex.Message);
+                string str = string.Format("]-[{0}]-[{1}]-[{2}]-[{3}]-[{4}]-[", _reset, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss fff"), DateTime.Now.Ticks.ToString(), "", ex.StackTrace);
+                System.IO.File.AppendAllLines(_logpath, new List<string> { str });
             }
         }
 

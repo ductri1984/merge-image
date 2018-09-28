@@ -50,7 +50,103 @@ namespace BusinessBackground
                     {
                         if (item.IsFile)
                         {
+                            if (System.IO.File.Exists(item.UploadFolder))
+                            {
+                                string filepath = item.UploadFolder;
+                                string filecurrent = System.IO.Path.Combine(FolderPath, item.FileName + System.IO.Path.GetExtension(filepath));
+                                if (System.IO.File.Exists(filecurrent))
+                                {
+                                    var itemCurrent = new DTOAPIData
+                                    {
+                                        FileName = item.FileName,
+                                        ListColumnTitle = new List<string>(),
+                                        ListRowTitle = new List<string>(),
+                                        ListCells = new List<DTOAPIDataCell>()
+                                    };
 
+                                    using (var package = new OfficeOpenXml.ExcelPackage(new System.IO.FileInfo(filecurrent)))
+                                    {
+                                        var worksheet = HelperExcel.GetWorksheetFirst(package);
+                                        #region current
+                                        if (worksheet != null && worksheet.Dimension != null)
+                                        {
+                                            int row = 1, col = 1;
+                                            while (itemCurrent.ListColumnTitle.Count < item.ColumnValueStart)
+                                            {
+                                                itemCurrent.ListColumnTitle.Add(string.Empty);
+                                            }
+                                            while (itemCurrent.ListRowTitle.Count < item.RowValueStart)
+                                            {
+                                                itemCurrent.ListRowTitle.Add(string.Empty);
+                                            }
+
+                                            for (row = item.RowValueStart; row <= item.RowValueEnd && row <= worksheet.Dimension.End.Row; row++)
+                                            {
+                                                var strTitle = HelperExcel.GetValue(worksheet, row, item.ColumnTitle);
+                                                itemCurrent.ListRowTitle.Add(strTitle);
+                                            }
+
+                                            for (col = item.ColumnValueStart; col <= item.ColumnValueEnd && col <= worksheet.Dimension.End.Column; col++)
+                                            {
+                                                var strTitle = HelperExcel.GetValue(worksheet, item.RowTitle, col);
+                                                itemCurrent.ListColumnTitle.Add(strTitle);
+                                            }
+
+                                            for (row = item.RowValueStart; row <= item.RowValueEnd && row <= worksheet.Dimension.End.Row; row++)
+                                            {
+                                                for (col = item.ColumnValueStart; col <= item.ColumnValueEnd && col <= worksheet.Dimension.End.Column; col++)
+                                                {
+                                                    var strValue = HelperExcel.GetValue(worksheet, row, col);
+                                                    itemCurrent.ListCells.Add(new DTOAPIDataCell
+                                                    {
+                                                        Row = row,
+                                                        Column = col,
+                                                        ValueFrom = strValue,
+                                                        ValueTo = strValue
+                                                    });
+                                                }
+                                            }
+                                        }
+                                        #endregion
+                                    }
+
+                                    using (var package = new OfficeOpenXml.ExcelPackage(new System.IO.FileInfo(filepath)))
+                                    {
+                                        var worksheet = HelperExcel.GetWorksheetFirst(package);
+                                        #region next
+                                        if (worksheet != null && worksheet.Dimension != null)
+                                        {
+                                            foreach (var itemCell in itemCurrent.ListCells)
+                                            {
+                                                if (itemCell.Row <= worksheet.Dimension.End.Row && itemCell.Column <= worksheet.Dimension.End.Column)
+                                                {
+                                                    var strValue = HelperExcel.GetValue(worksheet, itemCell.Row, itemCell.Column);
+                                                    if (itemCell.ValueTo != strValue)
+                                                        itemCell.ValueTo = strValue;
+                                                }
+                                            }
+                                        }
+                                        #endregion
+                                    }
+
+                                    itemCurrent.ListCells = itemCurrent.ListCells.Where(c => c.ValueTo != c.ValueFrom).ToList();
+                                    if (itemCurrent.ListCells.Count > 0)
+                                    {
+                                        System.IO.File.Delete(filecurrent);
+                                        System.IO.File.Copy(filepath, filecurrent);
+                                        itemCurrent.FileName = SendFile(item, item.FileName, filecurrent);
+                                        SendAPIData(item, itemCurrent);
+                                        SendAPIPush(item, itemCurrent);
+                                    }
+                                }
+                                else
+                                {
+                                    System.IO.File.Copy(filepath, filecurrent);
+                                    //SendFile(item, item.FileName, filecurrent);
+                                }
+                                //if (System.IO.File.Exists(filepath))
+                                //    System.IO.File.Delete(filepath);
+                            }
                         }
                         else
                         {
@@ -220,11 +316,13 @@ namespace BusinessBackground
                     Uri url = new Uri(item.LinkPush);
 
                     client.BaseAddress = new Uri(url.Scheme + "://" + url.Authority);
+                    //client.BaseAddress = new Uri("http://localhost:57075");
                     client.DefaultRequestHeaders.Accept.Clear();
 
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     client.Timeout = TimeSpan.FromHours(0.1);
                     DTOAPIPush dto = new DTOAPIPush();
+                    dto.FileName = item.FileName;
                     List<int> lstRowID = data.ListCells.Select(c => c.Row).Distinct().ToList();
                     List<string> lstRowTitle = new List<string>();
                     Dictionary<int, List<string>> dicRowValue = new Dictionary<int, List<string>>();

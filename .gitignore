@@ -54,6 +54,7 @@ os_excelchangedata/DataExcel/.vs/*
 os_excelchangedata/DataExcel/packages/
 os_excelchangedata/DataExcel/APIBusiness/bin/
 os_excelchangedata/DataExcel/APIBusiness/obj/
+os_excelchangedata/DataExcel/APIBusiness/Uploads/
 os_excelchangedata/DataExcel/BusinessBackground/bin/
 os_excelchangedata/DataExcel/BusinessBackground/obj/
 os_excelchangedata/DataExcel/FormsBackground/bin/
