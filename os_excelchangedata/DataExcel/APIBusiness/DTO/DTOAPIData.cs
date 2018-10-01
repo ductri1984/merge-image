@@ -9,7 +9,10 @@ namespace APIBusiness
     public class DTOAPIData
     {
         public DateTime? CreatedDate { get; set; }
-        public string FileName { get; set; }        
+        public string FileName { get; set; }
+        public string FileUpload { get; set; }
+        public string SpreadsheetID { get; set; }
+        public string SpreadsheetName { get; set; }
         public List<string> ListRowTitle { get; set; }
         public List<string> ListColumnTitle { get; set; }
         public List<DTOAPIDataCell> ListCells { get; set; }

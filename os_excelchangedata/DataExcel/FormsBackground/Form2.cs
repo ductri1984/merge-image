@@ -34,6 +34,8 @@ namespace FormsBackground
                 txtFileName.Text = ItemEdit.FileName;
                 txtHandlerLink.Text = ItemEdit.HandlerLink;
                 txtHandlerKey.Text = ItemEdit.HandlerKey;
+                txtSpreadsheetID.Text = ItemEdit.SpreadsheetID;
+                txtSpreadsheetName.Text = ItemEdit.SpreadsheetName;
                 txtRangeValue.Text = HelperExcel.GetRangeName(ItemEdit.RowValueStart, ItemEdit.ColumnValueStart, ItemEdit.RowValueEnd, ItemEdit.ColumnValueEnd);
                 txtCellTitle.Text = HelperExcel.GetCellName(ItemEdit.RowTitle, ItemEdit.ColumnTitle);
                 txtLinkData.Text = ItemEdit.LinkData;
@@ -70,6 +72,8 @@ namespace FormsBackground
                     ItemEdit.FileName = txtFileName.Text;
                     ItemEdit.HandlerLink = txtHandlerLink.Text;
                     ItemEdit.HandlerKey = txtHandlerKey.Text;
+                    ItemEdit.SpreadsheetID = txtSpreadsheetID.Text;
+                    ItemEdit.SpreadsheetName = txtSpreadsheetName.Text;
                     ItemEdit.ColumnValueStart = HelperExcel.GetColumnFromByRange(txtRangeValue.Text);
                     ItemEdit.ColumnValueEnd = HelperExcel.GetColumnToByRange(txtRangeValue.Text);
                     ItemEdit.RowValueStart = HelperExcel.GetRowFromByRange(txtRangeValue.Text);

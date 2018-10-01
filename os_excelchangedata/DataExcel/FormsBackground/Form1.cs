@@ -137,16 +137,44 @@ namespace FormsBackground
                     if (data is DTODataDetail)
                     {
                         Form2 frm = new Form2();
-                        frm.ItemEdit = data as DTODataDetail;
+                        var item = data as DTODataDetail;
+                        frm.ItemEdit = new DTODataDetail
+                        {
+                            ID = item.ID,
+                            UploadFolder = item.UploadFolder,
+                            IsFile = item.IsFile,
+                            FileName = item.FileName,
+                            SpreadsheetID = item.SpreadsheetID,
+                            SpreadsheetName = item.SpreadsheetName,
+                            HandlerLink = item.HandlerLink,
+                            HandlerKey = item.HandlerKey,
+                            ColumnValueStart = item.ColumnValueStart,
+                            ColumnValueEnd = item.ColumnValueEnd,
+                            RowValueStart = item.RowValueStart,
+                            RowValueEnd = item.RowValueEnd,
+                            ColumnTitle = item.ColumnTitle,
+                            RowTitle = item.RowTitle,
+                            LinkData = item.LinkData,
+                            LinkPush = item.LinkPush,
+                            FormatPushTitle = item.FormatPushTitle,
+                            FormatPushBody = item.FormatPushBody
+                        };
                         var res = frm.ShowDialog();
                         if (res == DialogResult.Yes)
                         {
+                            if (_dtodata.ListDetails.Where(c => c.ID != frm.ItemEdit.ID && c.FileName == frm.ItemEdit.FileName).Count() > 0)
+                                throw new Exception("Filename is use");
+                            if (_dtodata.ListDetails.Where(c => c.ID != frm.ItemEdit.ID && c.SpreadsheetID == frm.ItemEdit.SpreadsheetID && c.SpreadsheetName == frm.ItemEdit.SpreadsheetName).Count() > 0)
+                                throw new Exception("Sheetname is use");
+
                             var find = _dtodata.ListDetails.FirstOrDefault(c => c.ID == frm.ItemEdit.ID);
                             if (find != null)
                             {
                                 find.UploadFolder = frm.ItemEdit.UploadFolder;
                                 find.IsFile = frm.ItemEdit.IsFile;
                                 find.FileName = frm.ItemEdit.FileName;
+                                find.SpreadsheetID = frm.ItemEdit.SpreadsheetID;
+                                find.SpreadsheetName = frm.ItemEdit.SpreadsheetName;
                                 find.HandlerLink = frm.ItemEdit.HandlerLink;
                                 find.HandlerKey = frm.ItemEdit.HandlerKey;
                                 find.ColumnValueStart = frm.ItemEdit.ColumnValueStart;
@@ -163,6 +191,7 @@ namespace FormsBackground
                                 dataGridView1.DataSource = null;
                                 dataGridView1.DataSource = _dtodata.ListDetails;
                             }
+
                         }
                         else if (res == DialogResult.No)
                         {
@@ -295,16 +324,24 @@ namespace FormsBackground
                     Form2 frm = new Form2();
                     if (frm.ShowDialog() == DialogResult.Yes)
                     {
-                        string id = Guid.NewGuid().ToString();
-                        while (_dtodata.ListDetails.Where(c => c.ID == id).Count() > 0)
+                        if (frm.ItemEdit != null)
                         {
-                            id = Guid.NewGuid().ToString();
-                        }
-                        frm.ItemEdit.ID = id;
-                        _dtodata.ListDetails.Add(frm.ItemEdit);
+                            if (_dtodata.ListDetails.Where(c => c.FileName == frm.ItemEdit.FileName).Count() > 0)
+                                throw new Exception("Filename is use");
+                            if (_dtodata.ListDetails.Where(c => c.SpreadsheetID == frm.ItemEdit.SpreadsheetID && c.SpreadsheetName == frm.ItemEdit.SpreadsheetName).Count() > 0)
+                                throw new Exception("Sheetname is use");
 
-                        dataGridView1.DataSource = null;
-                        dataGridView1.DataSource = _dtodata.ListDetails;
+                            string id = Guid.NewGuid().ToString();
+                            while (_dtodata.ListDetails.Where(c => c.ID == id).Count() > 0)
+                            {
+                                id = Guid.NewGuid().ToString();
+                            }
+                            frm.ItemEdit.ID = id;
+                            _dtodata.ListDetails.Add(frm.ItemEdit);
+
+                            dataGridView1.DataSource = null;
+                            dataGridView1.DataSource = _dtodata.ListDetails;
+                        }
                     }
                 }
             }

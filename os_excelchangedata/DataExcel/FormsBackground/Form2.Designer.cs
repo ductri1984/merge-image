@@ -42,6 +42,10 @@
             this.label5 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.label9 = new System.Windows.Forms.Label();
+            this.txtFormatPushBody = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.txtFormatPushTitle = new System.Windows.Forms.TextBox();
             this.txtCellTitle = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
@@ -50,10 +54,10 @@
             this.label4 = new System.Windows.Forms.Label();
             this.txtRangeValue = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.txtFormatPushTitle = new System.Windows.Forms.TextBox();
-            this.txtFormatPushBody = new System.Windows.Forms.TextBox();
-            this.label9 = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
+            this.txtSpreadsheetID = new System.Windows.Forms.TextBox();
+            this.label11 = new System.Windows.Forms.Label();
+            this.txtSpreadsheetName = new System.Windows.Forms.TextBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
@@ -78,7 +82,7 @@
             // btnClose
             // 
             this.btnClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnClose.Location = new System.Drawing.Point(345, 475);
+            this.btnClose.Location = new System.Drawing.Point(345, 525);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(75, 23);
             this.btnClose.TabIndex = 10;
@@ -88,7 +92,7 @@
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(264, 475);
+            this.btnSave.Location = new System.Drawing.Point(264, 525);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(75, 23);
             this.btnSave.TabIndex = 11;
@@ -98,7 +102,7 @@
             // 
             // btnDelete
             // 
-            this.btnDelete.Location = new System.Drawing.Point(183, 475);
+            this.btnDelete.Location = new System.Drawing.Point(183, 525);
             this.btnDelete.Name = "btnDelete";
             this.btnDelete.Size = new System.Drawing.Size(75, 23);
             this.btnDelete.TabIndex = 12;
@@ -148,6 +152,10 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.label11);
+            this.groupBox1.Controls.Add(this.txtSpreadsheetName);
+            this.groupBox1.Controls.Add(this.label10);
+            this.groupBox1.Controls.Add(this.txtSpreadsheetID);
             this.groupBox1.Controls.Add(this.label5);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.txtFileName);
@@ -156,7 +164,7 @@
             this.groupBox1.Controls.Add(this.txtHandlerLink);
             this.groupBox1.Location = new System.Drawing.Point(22, 93);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(398, 120);
+            this.groupBox1.Size = new System.Drawing.Size(398, 170);
             this.groupBox1.TabIndex = 8;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Handler";
@@ -193,12 +201,46 @@
             this.groupBox2.Controls.Add(this.label4);
             this.groupBox2.Controls.Add(this.txtRangeValue);
             this.groupBox2.Controls.Add(this.label6);
-            this.groupBox2.Location = new System.Drawing.Point(22, 219);
+            this.groupBox2.Location = new System.Drawing.Point(22, 269);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(398, 250);
             this.groupBox2.TabIndex = 23;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Data";
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(295, 195);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(91, 13);
+            this.label9.TabIndex = 35;
+            this.label9.Text = "Format push body";
+            // 
+            // txtFormatPushBody
+            // 
+            this.txtFormatPushBody.Location = new System.Drawing.Point(6, 195);
+            this.txtFormatPushBody.Multiline = true;
+            this.txtFormatPushBody.Name = "txtFormatPushBody";
+            this.txtFormatPushBody.Size = new System.Drawing.Size(283, 41);
+            this.txtFormatPushBody.TabIndex = 34;
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(295, 146);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(84, 13);
+            this.label2.TabIndex = 33;
+            this.label2.Text = "Format push title";
+            // 
+            // txtFormatPushTitle
+            // 
+            this.txtFormatPushTitle.Location = new System.Drawing.Point(6, 143);
+            this.txtFormatPushTitle.Multiline = true;
+            this.txtFormatPushTitle.Name = "txtFormatPushTitle";
+            this.txtFormatPushTitle.Size = new System.Drawing.Size(283, 41);
+            this.txtFormatPushTitle.TabIndex = 32;
             // 
             // txtCellTitle
             // 
@@ -264,39 +306,37 @@
             this.label6.TabIndex = 13;
             this.label6.Text = "Cell title";
             // 
-            // label2
+            // label10
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(295, 146);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(84, 13);
-            this.label2.TabIndex = 33;
-            this.label2.Text = "Format push title";
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(295, 115);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(49, 13);
+            this.label10.TabIndex = 24;
+            this.label10.Text = "Sheet ID";
             // 
-            // txtFormatPushTitle
+            // txtSpreadsheetID
             // 
-            this.txtFormatPushTitle.Location = new System.Drawing.Point(6, 143);
-            this.txtFormatPushTitle.Multiline = true;
-            this.txtFormatPushTitle.Name = "txtFormatPushTitle";
-            this.txtFormatPushTitle.Size = new System.Drawing.Size(283, 41);
-            this.txtFormatPushTitle.TabIndex = 32;
+            this.txtSpreadsheetID.Location = new System.Drawing.Point(6, 112);
+            this.txtSpreadsheetID.Name = "txtSpreadsheetID";
+            this.txtSpreadsheetID.Size = new System.Drawing.Size(283, 20);
+            this.txtSpreadsheetID.TabIndex = 23;
             // 
-            // txtFormatPushBody
+            // label11
             // 
-            this.txtFormatPushBody.Location = new System.Drawing.Point(6, 195);
-            this.txtFormatPushBody.Multiline = true;
-            this.txtFormatPushBody.Name = "txtFormatPushBody";
-            this.txtFormatPushBody.Size = new System.Drawing.Size(283, 41);
-            this.txtFormatPushBody.TabIndex = 34;
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(295, 146);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(64, 13);
+            this.label11.TabIndex = 26;
+            this.label11.Text = "Sheet name";
             // 
-            // label9
+            // txtSpreadsheetName
             // 
-            this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(295, 195);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(91, 13);
-            this.label9.TabIndex = 35;
-            this.label9.Text = "Format push body";
+            this.txtSpreadsheetName.Location = new System.Drawing.Point(6, 143);
+            this.txtSpreadsheetName.Name = "txtSpreadsheetName";
+            this.txtSpreadsheetName.Size = new System.Drawing.Size(283, 20);
+            this.txtSpreadsheetName.TabIndex = 25;
             // 
             // Form2
             // 
@@ -304,7 +344,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnClose;
-            this.ClientSize = new System.Drawing.Size(438, 507);
+            this.ClientSize = new System.Drawing.Size(438, 554);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.btnDelete);
             this.Controls.Add(this.btnSave);
@@ -357,5 +397,9 @@
         private System.Windows.Forms.TextBox txtFormatPushTitle;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.TextBox txtFormatPushBody;
+        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.TextBox txtSpreadsheetName;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.TextBox txtSpreadsheetID;
     }
 }

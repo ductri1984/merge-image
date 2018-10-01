@@ -11,6 +11,8 @@ namespace BusinessBackground
         public string ID { get; set; }
 
         public string FileName { get; set; }
+        public string SpreadsheetID { get; set; }
+        public string SpreadsheetName { get; set; }
         public string UploadFolder { get; set; }
         public bool IsFile { get; set; }
         public string HandlerLink { get; set; }

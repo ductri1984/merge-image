@@ -52,13 +52,19 @@ namespace BusinessBackground
                         {
                             if (System.IO.File.Exists(item.UploadFolder))
                             {
-                                string filepath = item.UploadFolder;
-                                string filecurrent = System.IO.Path.Combine(FolderPath, item.FileName + System.IO.Path.GetExtension(filepath));
+                                string filetemppath = System.IO.Path.Combine(FolderPath, item.FileName + "_temp" + System.IO.Path.GetExtension(item.UploadFolder));
+                                if (System.IO.File.Exists(filetemppath))
+                                    System.IO.File.Delete(filetemppath);
+                                System.IO.File.Copy(item.UploadFolder, filetemppath);
+                                string filecurrent = System.IO.Path.Combine(FolderPath, item.FileName + System.IO.Path.GetExtension(item.UploadFolder));
+
                                 if (System.IO.File.Exists(filecurrent))
                                 {
                                     var itemCurrent = new DTOAPIData
                                     {
                                         FileName = item.FileName,
+                                        SpreadsheetID = item.SpreadsheetID,
+                                        SpreadsheetName = item.SpreadsheetName,
                                         ListColumnTitle = new List<string>(),
                                         ListRowTitle = new List<string>(),
                                         ListCells = new List<DTOAPIDataCell>()
@@ -110,7 +116,7 @@ namespace BusinessBackground
                                         #endregion
                                     }
 
-                                    using (var package = new OfficeOpenXml.ExcelPackage(new System.IO.FileInfo(filepath)))
+                                    using (var package = new OfficeOpenXml.ExcelPackage(new System.IO.FileInfo(filetemppath)))
                                     {
                                         var worksheet = HelperExcel.GetWorksheetFirst(package);
                                         #region next
@@ -133,19 +139,21 @@ namespace BusinessBackground
                                     if (itemCurrent.ListCells.Count > 0)
                                     {
                                         System.IO.File.Delete(filecurrent);
-                                        System.IO.File.Copy(filepath, filecurrent);
-                                        itemCurrent.FileName = SendFile(item, item.FileName, filecurrent);
-                                        SendAPIData(item, itemCurrent);
-                                        SendAPIPush(item, itemCurrent);
+                                        System.IO.File.Copy(filetemppath, filecurrent);
+                                        itemCurrent.FileUpload = SendFile(item, item.FileName, filecurrent);
+                                        if (!string.IsNullOrEmpty(itemCurrent.FileUpload))
+                                        {
+                                            SendAPIData(item, itemCurrent);
+                                            SendAPIPushData(item, itemCurrent);
+                                        }
+                                        else
+                                            actionlog("upload file fail " + item.UploadFolder);
                                     }
                                 }
                                 else
                                 {
-                                    System.IO.File.Copy(filepath, filecurrent);
-                                    //SendFile(item, item.FileName, filecurrent);
+                                    System.IO.File.Copy(filetemppath, filecurrent);
                                 }
-                                //if (System.IO.File.Exists(filepath))
-                                //    System.IO.File.Delete(filepath);
                             }
                         }
                         else
@@ -155,13 +163,19 @@ namespace BusinessBackground
                                 string[] files = System.IO.Directory.GetFiles(item.UploadFolder);
                                 if (files.Length > 0)
                                 {
-                                    string filepath = files[0];
-                                    string filecurrent = System.IO.Path.Combine(FolderPath, item.FileName + System.IO.Path.GetExtension(filepath));
+                                    string filetemppath = System.IO.Path.Combine(FolderPath, item.FileName + "_temp" + System.IO.Path.GetExtension(item.UploadFolder));
+                                    if (System.IO.File.Exists(filetemppath))
+                                        System.IO.File.Delete(filetemppath);
+                                    System.IO.File.Copy(files[0], filetemppath);
+
+                                    string filecurrent = System.IO.Path.Combine(FolderPath, item.FileName + System.IO.Path.GetExtension(filetemppath));
                                     if (System.IO.File.Exists(filecurrent))
                                     {
                                         var itemCurrent = new DTOAPIData
                                         {
                                             FileName = item.FileName,
+                                            SpreadsheetID = item.SpreadsheetID,
+                                            SpreadsheetName = item.SpreadsheetName,
                                             ListColumnTitle = new List<string>(),
                                             ListRowTitle = new List<string>(),
                                             ListCells = new List<DTOAPIDataCell>()
@@ -213,7 +227,7 @@ namespace BusinessBackground
                                             #endregion
                                         }
 
-                                        using (var package = new OfficeOpenXml.ExcelPackage(new System.IO.FileInfo(filepath)))
+                                        using (var package = new OfficeOpenXml.ExcelPackage(new System.IO.FileInfo(filetemppath)))
                                         {
                                             var worksheet = HelperExcel.GetWorksheetFirst(package);
                                             #region next
@@ -236,19 +250,18 @@ namespace BusinessBackground
                                         if (itemCurrent.ListCells.Count > 0)
                                         {
                                             System.IO.File.Delete(filecurrent);
-                                            System.IO.File.Copy(filepath, filecurrent);
-                                            itemCurrent.FileName = SendFile(item, item.FileName, filecurrent);
+                                            System.IO.File.Copy(filetemppath, filecurrent);
+                                            itemCurrent.FileUpload = SendFile(item, item.FileName, filecurrent);
                                             SendAPIData(item, itemCurrent);
-                                            SendAPIPush(item, itemCurrent);
+                                            SendAPIPushData(item, itemCurrent);
                                         }
                                     }
                                     else
                                     {
-                                        System.IO.File.Copy(filepath, filecurrent);
-                                        //SendFile(item, item.FileName, filecurrent);
+                                        System.IO.File.Copy(filetemppath, filecurrent);
                                     }
-                                    //if (System.IO.File.Exists(filepath))
-                                    //    System.IO.File.Delete(filepath);
+                                    if (System.IO.File.Exists(files[0]))
+                                        System.IO.File.Delete(files[0]);
                                 }
                             }
                             else
@@ -270,6 +283,7 @@ namespace BusinessBackground
                 Uri url = new Uri(item.HandlerLink);
 
                 client.BaseAddress = new Uri(url.Scheme + "://" + url.Authority);
+                //client.BaseAddress = new Uri("http://localhost:57075");
                 client.DefaultRequestHeaders.Accept.Clear();
 
                 client.Timeout = TimeSpan.FromHours(0.1);
@@ -294,6 +308,7 @@ namespace BusinessBackground
                 Uri url = new Uri(item.LinkData);
 
                 client.BaseAddress = new Uri(url.Scheme + "://" + url.Authority);
+                //client.BaseAddress = new Uri("http://localhost:57075");
                 client.DefaultRequestHeaders.Accept.Clear();
 
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -346,6 +361,37 @@ namespace BusinessBackground
                     }
                     if (!string.IsNullOrEmpty(dto.Body))
                         dto.Body = dto.Body.Substring(1);
+
+                    var content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+                    var response = client.PostAsync(url.AbsolutePath, content);
+                    if (response != null && response.Result.IsSuccessStatusCode)
+                    {
+                        HttpResponseMessage res = response.Result;
+                    }
+                }
+            }
+        }
+
+        private static void SendAPIPushData(DTODataDetail item, DTOAPIData data)
+        {
+            if (!string.IsNullOrEmpty(item.FormatPushTitle) && !string.IsNullOrEmpty(item.FormatPushBody))
+            {
+                using (var client = new HttpClient())
+                {
+                    Uri url = new Uri(item.LinkPush);
+
+                    client.BaseAddress = new Uri(url.Scheme + "://" + url.Authority);
+                    //client.BaseAddress = new Uri("http://localhost:57075");
+                    client.DefaultRequestHeaders.Accept.Clear();
+
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    client.Timeout = TimeSpan.FromHours(0.1);
+                    DTOAPIPush dto = new DTOAPIPush();
+                    dto.FileName = item.FileName;
+                    dto.SpreadsheetID = item.SpreadsheetID;
+                    dto.SpreadsheetName = item.SpreadsheetName;
+                    dto.FormatPushTitle = item.FormatPushTitle;
+                    dto.FormatPushBody = item.FormatPushBody;
 
                     var content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
                     var response = client.PostAsync(url.AbsolutePath, content);

@@ -22,25 +22,25 @@
         "Entry"
         {
         "MsmKey" = "8:_00517FFF210B41DE918519B951721D59"
-        "OwnerKey" = "8:_AF7DA089B3DA4499899F10A7188E8EDD"
+        "OwnerKey" = "8:_CAE249535D3E4425BDC683AFE9715DF2"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_00517FFF210B41DE918519B951721D59"
-        "OwnerKey" = "8:_62EF47204D4C4333A24EF7BE40E6BC37"
+        "OwnerKey" = "8:_6651783A278943EEA2F0F26C423288DE"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_04C0B4FB3DF63A33DBF626694FF03C37"
-        "OwnerKey" = "8:_62EF47204D4C4333A24EF7BE40E6BC37"
+        "OwnerKey" = "8:_6651783A278943EEA2F0F26C423288DE"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_04C0B4FB3DF63A33DBF626694FF03C37"
-        "OwnerKey" = "8:_AF7DA089B3DA4499899F10A7188E8EDD"
+        "OwnerKey" = "8:_CAE249535D3E4425BDC683AFE9715DF2"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -58,36 +58,36 @@
         "Entry"
         {
         "MsmKey" = "8:_34E358EF80487525E0F52C85912D1129"
-        "OwnerKey" = "8:_AF7DA089B3DA4499899F10A7188E8EDD"
+        "OwnerKey" = "8:_CAE249535D3E4425BDC683AFE9715DF2"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_34E358EF80487525E0F52C85912D1129"
-        "OwnerKey" = "8:_62EF47204D4C4333A24EF7BE40E6BC37"
+        "OwnerKey" = "8:_6651783A278943EEA2F0F26C423288DE"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_62EF47204D4C4333A24EF7BE40E6BC37"
+        "MsmKey" = "8:_6651783A278943EEA2F0F26C423288DE"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_91FF9CF0FDF551DA146013757AD908D1"
-        "OwnerKey" = "8:_62EF47204D4C4333A24EF7BE40E6BC37"
+        "OwnerKey" = "8:_6651783A278943EEA2F0F26C423288DE"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_91FF9CF0FDF551DA146013757AD908D1"
-        "OwnerKey" = "8:_AF7DA089B3DA4499899F10A7188E8EDD"
+        "OwnerKey" = "8:_CAE249535D3E4425BDC683AFE9715DF2"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_AF7DA089B3DA4499899F10A7188E8EDD"
+        "MsmKey" = "8:_CAE249535D3E4425BDC683AFE9715DF2"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -100,13 +100,13 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_AF7DA089B3DA4499899F10A7188E8EDD"
+        "OwnerKey" = "8:_CAE249535D3E4425BDC683AFE9715DF2"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_62EF47204D4C4333A24EF7BE40E6BC37"
+        "OwnerKey" = "8:_6651783A278943EEA2F0F26C423288DE"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -199,31 +199,31 @@
     {
         "CustomAction"
         {
-            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_963DBE0CAD094B0482EA11563E1E3B3E"
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_18438952323946E7B812A9961B5321BB"
             {
             "Name" = "8:Primary output from WindowsBackground (Active)"
             "Condition" = "8:"
-            "Object" = "8:_62EF47204D4C4333A24EF7BE40E6BC37"
-            "FileType" = "3:2"
-            "InstallAction" = "3:1"
-            "Arguments" = "8:"
-            "EntryPoint" = "8:"
-            "Sequence" = "3:1"
-            "Identifier" = "8:_B0A556D0_D1F2_4B8E_8F3C_3D5DECE173B7"
-            "InstallerClass" = "11:TRUE"
-            "CustomActionData" = "8:"
-            }
-            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_D06C5EC96BEA4F128453130D783328F3"
-            {
-            "Name" = "8:Primary output from WindowsBackground (Active)"
-            "Condition" = "8:"
-            "Object" = "8:_62EF47204D4C4333A24EF7BE40E6BC37"
+            "Object" = "8:_6651783A278943EEA2F0F26C423288DE"
             "FileType" = "3:2"
             "InstallAction" = "3:4"
             "Arguments" = "8:"
             "EntryPoint" = "8:"
             "Sequence" = "3:1"
-            "Identifier" = "8:_195F59DF_7D02_4A56_98F7_C6EF0BDAADA1"
+            "Identifier" = "8:_AE40F2E2_B494_4622_A255_680DF38762ED"
+            "InstallerClass" = "11:TRUE"
+            "CustomActionData" = "8:"
+            }
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_C9542FED722A46F1A836FE592A84F26C"
+            {
+            "Name" = "8:Primary output from WindowsBackground (Active)"
+            "Condition" = "8:"
+            "Object" = "8:_6651783A278943EEA2F0F26C423288DE"
+            "FileType" = "3:2"
+            "InstallAction" = "3:1"
+            "Arguments" = "8:"
+            "EntryPoint" = "8:"
+            "Sequence" = "3:1"
+            "Identifier" = "8:_58335FF2_E6D6_41FF_B665_AF0F8DE0A328"
             "InstallerClass" = "11:TRUE"
             "CustomActionData" = "8:"
             }
@@ -431,7 +431,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:WindowsBackgroundSetup"
         "ProductCode" = "8:{121D48C6-220A-4634-8162-9783505F01F6}"
-        "PackageCode" = "8:{707A2A06-7F45-4A5A-86C1-AD26512F42C0}"
+        "PackageCode" = "8:{7B8615EB-89F8-4A3E-9B4A-9821CBB0245D}"
         "UpgradeCode" = "8:{E735D715-0E34-4D66-90BF-05B7036EF3AC}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -551,7 +551,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_21F7B6DE81F54A5181D2F10F32494CA0"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_A6139E121BD9405B8BDD17F9281D567C"
             {
             "Name" = "8:bot"
             "Arguments" = "8:"
@@ -559,7 +559,7 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_AF7DA089B3DA4499899F10A7188E8EDD"
+            "Target" = "8:_CAE249535D3E4425BDC683AFE9715DF2"
             "Folder" = "8:_F2124016793F4164A436EAFE3C42E991"
             "WorkingFolder" = "8:_DB3CBB07615947D0B238989731B6FD34"
             "Icon" = "8:"
@@ -964,7 +964,7 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_62EF47204D4C4333A24EF7BE40E6BC37"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_6651783A278943EEA2F0F26C423288DE"
             {
             "SourcePath" = "8:..\\WindowsBackground\\obj\\Debug\\WindowsBackground.exe"
             "TargetName" = "8:"
@@ -992,7 +992,7 @@
                 {
                 }
             }
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_AF7DA089B3DA4499899F10A7188E8EDD"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_CAE249535D3E4425BDC683AFE9715DF2"
             {
             "SourcePath" = "8:..\\FormsBackground\\obj\\Debug\\FormsBackground.exe"
             "TargetName" = "8:"
