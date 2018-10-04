@@ -23,6 +23,8 @@ namespace APIBusiness.API
         const string FilePushData = "/Uploads/pushdata.json";
         const string FileClientId = "/Uploads/client_id.json";
         const string FileToken = "/Uploads/token";
+        const int RowMax = 2900;
+        const int ColMax = 52;
 
         [HttpPost]
         public void SendData(dynamic dynParam)
@@ -122,7 +124,7 @@ namespace APIBusiness.API
                     //    ApplicationName = "Google-SheetsSample/0.1",
                     //});
 
-                    string range = item.SpreadsheetName + "!A1:BA200";  // update cell F5 
+                    string range = item.SpreadsheetName + "!A1:BA" + RowMax;  // update cell F5 
                     var requestBody = new ClearValuesRequest();
 
                     var deleteRequest = service.Spreadsheets.Values.Clear(requestBody, item.SpreadsheetID, range);
@@ -146,24 +148,64 @@ namespace APIBusiness.API
                     valueRange.MajorDimension = "ROWS";//"ROWS";//COLUMNS                
                     valueRange.Values = new List<IList<object>>();
 
-                    using (var package = new OfficeOpenXml.ExcelPackage(new System.IO.FileInfo(fileupload)))
+                    if (System.IO.Path.GetExtension(fileupload).ToLower() == ".csv")
                     {
-                        var worksheet = HelperExcel.GetWorksheetFirst(package);
-                        #region current
-                        if (worksheet != null && worksheet.Dimension != null)
+                        #region csv
+                        using (var textReader = new System.IO.StreamReader(fileupload))
                         {
                             int row, col;
 
-                            for (row = 1; row <= worksheet.Dimension.End.Row && row < 200; row++)
+                            var csv = new CsvHelper.CsvReader(textReader);
+                            row = 0;
+                            while (csv.Read())
                             {
-                                var objrow = new List<object>();
-                                for (col = 1; col <= worksheet.Dimension.End.Column && col < 52; col++)
+                                if (row <= RowMax)
                                 {
-                                    var str = HelperExcel.GetValue(worksheet, row, col);
-                                    objrow.Add(str);
+                                    var objrow = new List<object>();
+                                    for (col = 0; col < ColMax; col++)
+                                    {
+                                        try
+                                        {
+                                            objrow.Add(csv[col]);
+                                        }
+                                        catch 
+                                        {
+                                            break;
+                                        }                                        
+                                    }
+                                    valueRange.Values.Add(objrow);
                                 }
-                                valueRange.Values.Add(objrow);
+                                else
+                                    break;
+
+                                row++;
                             }
+                        }
+                        #endregion
+                    }
+                    else
+                    {
+                        #region excel
+                        using (var package = new OfficeOpenXml.ExcelPackage(new System.IO.FileInfo(fileupload)))
+                        {
+                            var worksheet = HelperExcel.GetWorksheetFirst(package);
+                            #region current
+                            if (worksheet != null && worksheet.Dimension != null)
+                            {
+                                int row, col;
+
+                                for (row = 1; row <= worksheet.Dimension.End.Row && row < RowMax; row++)
+                                {
+                                    var objrow = new List<object>();
+                                    for (col = 1; col <= worksheet.Dimension.End.Column && col < ColMax; col++)
+                                    {
+                                        var str = HelperExcel.GetValue(worksheet, row, col);
+                                        objrow.Add(str);
+                                    }
+                                    valueRange.Values.Add(objrow);
+                                }
+                            }
+                            #endregion
                         }
                         #endregion
                     }
@@ -185,12 +227,6 @@ namespace APIBusiness.API
 
                     if (credential != null)
                     {
-                        //SheetsService sheetsService = new SheetsService(new BaseClientService.Initializer
-                        //{
-                        //    HttpClientInitializer = credential,
-                        //    ApplicationName = "Google-SheetsSample/0.1",
-                        //});
-
                         // Create Google Sheets API service.
                         var service = new SheetsService(new BaseClientService.Initializer()
                         {

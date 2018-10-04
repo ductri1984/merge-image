@@ -70,13 +70,14 @@ namespace BusinessBackground
                                         ListCells = new List<DTOAPIDataCell>()
                                     };
 
-                                    using (var package = new OfficeOpenXml.ExcelPackage(new System.IO.FileInfo(filecurrent)))
+                                    if (System.IO.Path.GetExtension(filetemppath).ToLower() == ".csv")
                                     {
-                                        var worksheet = HelperExcel.GetWorksheetFirst(package);
+                                        #region csv
+
                                         #region current
-                                        if (worksheet != null && worksheet.Dimension != null)
+                                        using (var textReader = new System.IO.StreamReader(filecurrent))
                                         {
-                                            int row = 1, col = 1;
+                                            int row, col;
                                             while (itemCurrent.ListColumnTitle.Count < item.ColumnValueStart)
                                             {
                                                 itemCurrent.ListColumnTitle.Add(string.Empty);
@@ -86,101 +87,103 @@ namespace BusinessBackground
                                                 itemCurrent.ListRowTitle.Add(string.Empty);
                                             }
 
-                                            for (row = item.RowValueStart; row <= item.RowValueEnd && row <= worksheet.Dimension.End.Row; row++)
+                                            var csv = new CsvHelper.CsvReader(textReader);
+                                            row = 0;
+                                            while (csv.Read())
                                             {
-                                                var strTitle = HelperExcel.GetValue(worksheet, row, item.ColumnTitle);
-                                                itemCurrent.ListRowTitle.Add(strTitle);
-                                            }
-
-                                            for (col = item.ColumnValueStart; col <= item.ColumnValueEnd && col <= worksheet.Dimension.End.Column; col++)
-                                            {
-                                                var strTitle = HelperExcel.GetValue(worksheet, item.RowTitle, col);
-                                                itemCurrent.ListColumnTitle.Add(strTitle);
-                                            }
-
-                                            for (row = item.RowValueStart; row <= item.RowValueEnd && row <= worksheet.Dimension.End.Row; row++)
-                                            {
-                                                for (col = item.ColumnValueStart; col <= item.ColumnValueEnd && col <= worksheet.Dimension.End.Column; col++)
+                                                if (row <= item.RowValueEnd)
                                                 {
-                                                    var strValue = HelperExcel.GetValue(worksheet, row, col);
-                                                    itemCurrent.ListCells.Add(new DTOAPIDataCell
+                                                    for (col = 0; col < 52 && col <= item.ColumnValueEnd; col++)
                                                     {
-                                                        Row = row,
-                                                        Column = col,
-                                                        ValueFrom = strValue,
-                                                        ValueTo = strValue
-                                                    });
+                                                        if (item.ColumnTitle == col + 1)
+                                                        {
+                                                            string strTitle = string.Empty;
+                                                            try
+                                                            {
+                                                                strTitle = csv[col];
+                                                            }
+                                                            catch
+                                                            { }
+                                                            itemCurrent.ListRowTitle.Add(strTitle);
+                                                        }
+                                                        else if (item.RowTitle == row + 1 && col + 1 >= item.ColumnValueStart && col + 1 <= item.ColumnValueEnd)
+                                                        {
+                                                            string strTitle = string.Empty;
+                                                            try
+                                                            {
+                                                                strTitle = csv[col];
+                                                            }
+                                                            catch
+                                                            { }
+                                                            itemCurrent.ListColumnTitle.Add(strTitle);
+                                                        }
+                                                        else if (row + 1 > item.RowTitle && col + 1 >= item.ColumnValueStart && col + 1 <= item.ColumnValueEnd)
+                                                        {
+                                                            string strValue = string.Empty;
+                                                            try
+                                                            {
+                                                                strValue = csv[col];
+                                                            }
+                                                            catch
+                                                            { }
+                                                            itemCurrent.ListCells.Add(new DTOAPIDataCell
+                                                            {
+                                                                Row = row + 1,
+                                                                Column = col + 1,
+                                                                ValueFrom = strValue,
+                                                                ValueTo = strValue
+                                                            });
+                                                        }
+                                                    }
                                                 }
+                                                else
+                                                    break;
+
+                                                row++;
                                             }
                                         }
                                         #endregion
-                                    }
 
-                                    using (var package = new OfficeOpenXml.ExcelPackage(new System.IO.FileInfo(filetemppath)))
-                                    {
-                                        var worksheet = HelperExcel.GetWorksheetFirst(package);
                                         #region next
-                                        if (worksheet != null && worksheet.Dimension != null)
+                                        using (var textReader = new System.IO.StreamReader(filetemppath))
                                         {
-                                            foreach (var itemCell in itemCurrent.ListCells)
+                                            int row, col;
+
+                                            var csv = new CsvHelper.CsvReader(textReader);
+                                            row = 0;
+                                            while (csv.Read())
                                             {
-                                                if (itemCell.Row <= worksheet.Dimension.End.Row && itemCell.Column <= worksheet.Dimension.End.Column)
+                                                if (row <= item.RowValueEnd)
                                                 {
-                                                    var strValue = HelperExcel.GetValue(worksheet, itemCell.Row, itemCell.Column);
-                                                    if (itemCell.ValueTo != strValue)
-                                                        itemCell.ValueTo = strValue;
+                                                    for (col = 0; col < 52 && col <= item.ColumnValueEnd; col++)
+                                                    {
+                                                        if (item.ColumnTitle == col + 1)
+                                                        {
+                                                            itemCurrent.ListColumnTitle.Add(csv[col]);
+                                                        }
+                                                        else if (row + 1 > item.RowTitle && col + 1 >= item.ColumnValueStart && col + 1 <= item.ColumnValueEnd)
+                                                        {
+                                                            var itemCell = itemCurrent.ListCells.FirstOrDefault(c => c.Row == row + 1 && c.Column == col + 1);
+                                                            if (itemCell != null && itemCell.ValueTo != csv[col])
+                                                            {
+                                                                itemCell.ValueTo = csv[col];
+                                                            }
+                                                        }
+                                                    }
                                                 }
+                                                else
+                                                    break;
+
+                                                row++;
                                             }
                                         }
                                         #endregion
+
+                                        #endregion
                                     }
-
-                                    itemCurrent.ListCells = itemCurrent.ListCells.Where(c => c.ValueTo != c.ValueFrom).ToList();
-                                    if (itemCurrent.ListCells.Count > 0)
+                                    else
                                     {
-                                        System.IO.File.Delete(filecurrent);
-                                        System.IO.File.Copy(filetemppath, filecurrent);
-                                        itemCurrent.FileUpload = SendFile(item, item.FileName, filecurrent);
-                                        if (!string.IsNullOrEmpty(itemCurrent.FileUpload))
-                                        {
-                                            SendAPIData(item, itemCurrent);
-                                            SendAPIPushData(item, itemCurrent);
-                                        }
-                                        else
-                                            actionlog("upload file fail " + item.UploadFolder);
-                                    }
-                                }
-                                else
-                                {
-                                    System.IO.File.Copy(filetemppath, filecurrent);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (System.IO.Directory.Exists(item.UploadFolder))
-                            {
-                                string[] files = System.IO.Directory.GetFiles(item.UploadFolder);
-                                if (files.Length > 0)
-                                {
-                                    string filetemppath = System.IO.Path.Combine(FolderPath, item.FileName + "_temp" + System.IO.Path.GetExtension(item.UploadFolder));
-                                    if (System.IO.File.Exists(filetemppath))
-                                        System.IO.File.Delete(filetemppath);
-                                    System.IO.File.Copy(files[0], filetemppath);
-
-                                    string filecurrent = System.IO.Path.Combine(FolderPath, item.FileName + System.IO.Path.GetExtension(filetemppath));
-                                    if (System.IO.File.Exists(filecurrent))
-                                    {
-                                        var itemCurrent = new DTOAPIData
-                                        {
-                                            FileName = item.FileName,
-                                            SpreadsheetID = item.SpreadsheetID,
-                                            SpreadsheetName = item.SpreadsheetName,
-                                            ListColumnTitle = new List<string>(),
-                                            ListRowTitle = new List<string>(),
-                                            ListCells = new List<DTOAPIDataCell>()
-                                        };
-
+                                        #region excel
                                         using (var package = new OfficeOpenXml.ExcelPackage(new System.IO.FileInfo(filecurrent)))
                                         {
                                             var worksheet = HelperExcel.GetWorksheetFirst(package);
@@ -244,6 +247,233 @@ namespace BusinessBackground
                                                 }
                                             }
                                             #endregion
+                                        }
+                                        #endregion
+                                    }
+
+                                    itemCurrent.ListCells = itemCurrent.ListCells.Where(c => c.ValueTo != c.ValueFrom).ToList();
+                                    if (itemCurrent.ListCells.Count > 0)
+                                    {
+                                        System.IO.File.Delete(filecurrent);
+                                        System.IO.File.Copy(filetemppath, filecurrent);
+                                        itemCurrent.FileUpload = SendFile(item, item.FileName, filecurrent);
+                                        if (!string.IsNullOrEmpty(itemCurrent.FileUpload))
+                                        {
+                                            SendAPIData(item, itemCurrent);
+                                            SendAPIPushData(item, itemCurrent);
+                                        }
+                                        else
+                                            actionlog("upload file fail " + item.UploadFolder);
+                                    }
+                                }
+                                else
+                                {
+                                    System.IO.File.Copy(filetemppath, filecurrent);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (System.IO.Directory.Exists(item.UploadFolder))
+                            {
+                                string[] files = System.IO.Directory.GetFiles(item.UploadFolder);
+                                if (files.Length > 0)
+                                {
+                                    string filetemppath = System.IO.Path.Combine(FolderPath, item.FileName + "_temp" + System.IO.Path.GetExtension(item.UploadFolder));
+                                    if (System.IO.File.Exists(filetemppath))
+                                        System.IO.File.Delete(filetemppath);
+                                    System.IO.File.Copy(files[0], filetemppath);
+
+                                    string filecurrent = System.IO.Path.Combine(FolderPath, item.FileName + System.IO.Path.GetExtension(filetemppath));
+                                    if (System.IO.File.Exists(filecurrent))
+                                    {
+                                        var itemCurrent = new DTOAPIData
+                                        {
+                                            FileName = item.FileName,
+                                            SpreadsheetID = item.SpreadsheetID,
+                                            SpreadsheetName = item.SpreadsheetName,
+                                            ListColumnTitle = new List<string>(),
+                                            ListRowTitle = new List<string>(),
+                                            ListCells = new List<DTOAPIDataCell>()
+                                        };
+
+                                        if (System.IO.Path.GetExtension(filetemppath).ToLower() == ".csv")
+                                        {
+                                            #region csv
+
+                                            #region current
+                                            using (var textReader = new System.IO.StreamReader(filecurrent))
+                                            {
+                                                int row, col;
+                                                while (itemCurrent.ListColumnTitle.Count < item.ColumnValueStart)
+                                                {
+                                                    itemCurrent.ListColumnTitle.Add(string.Empty);
+                                                }
+                                                while (itemCurrent.ListRowTitle.Count < item.RowValueStart)
+                                                {
+                                                    itemCurrent.ListRowTitle.Add(string.Empty);
+                                                }
+
+                                                var csv = new CsvHelper.CsvReader(textReader);
+                                                row = 0;
+                                                while (csv.Read())
+                                                {
+                                                    if (row <= item.RowValueEnd)
+                                                    {
+                                                        for (col = 0; col < 52 && col <= item.ColumnValueEnd; col++)
+                                                        {
+                                                            if (item.ColumnTitle == col + 1)
+                                                            {
+                                                                string strTitle = string.Empty;
+                                                                try
+                                                                {
+                                                                    strTitle = csv[col];
+                                                                }
+                                                                catch
+                                                                { }
+                                                                itemCurrent.ListRowTitle.Add(strTitle);
+                                                            }
+                                                            else if (item.RowTitle == row + 1 && col + 1 >= item.ColumnValueStart && col + 1 <= item.ColumnValueEnd)
+                                                            {
+                                                                string strTitle = string.Empty;
+                                                                try
+                                                                {
+                                                                    strTitle = csv[col];
+                                                                }
+                                                                catch
+                                                                { }
+                                                                itemCurrent.ListColumnTitle.Add(strTitle);
+                                                            }
+                                                            else if (row + 1 > item.RowTitle && col + 1 >= item.ColumnValueStart && col + 1 <= item.ColumnValueEnd)
+                                                            {
+                                                                string strValue = string.Empty;
+                                                                try
+                                                                {
+                                                                    strValue = csv[col];
+                                                                }
+                                                                catch
+                                                                { }
+                                                                itemCurrent.ListCells.Add(new DTOAPIDataCell
+                                                                {
+                                                                    Row = row + 1,
+                                                                    Column = col + 1,
+                                                                    ValueFrom = strValue,
+                                                                    ValueTo = strValue
+                                                                });
+                                                            }
+                                                        }
+                                                    }
+                                                    else
+                                                        break;
+
+                                                    row++;
+                                                }
+                                            }
+                                            #endregion
+
+                                            #region next
+                                            using (var textReader = new System.IO.StreamReader(filetemppath))
+                                            {
+                                                int row, col;
+
+                                                var csv = new CsvHelper.CsvReader(textReader);
+                                                row = 0;
+                                                while (csv.Read())
+                                                {
+                                                    if (row <= item.RowValueEnd)
+                                                    {
+                                                        for (col = 0; col < 52 && col <= item.ColumnValueEnd; col++)
+                                                        {
+                                                            if (item.ColumnTitle == col + 1)
+                                                            {
+                                                                itemCurrent.ListColumnTitle.Add(csv[col]);
+                                                            }
+                                                            else if (row + 1 > item.RowTitle && col + 1 >= item.ColumnValueStart && col + 1 <= item.ColumnValueEnd)
+                                                            {
+                                                                var itemCell = itemCurrent.ListCells.FirstOrDefault(c => c.Row == row + 1 && c.Column == col + 1);
+                                                                if (itemCell != null && itemCell.ValueTo != csv[col])
+                                                                {
+                                                                    itemCell.ValueTo = csv[col];
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    else
+                                                        break;
+
+                                                    row++;
+                                                }
+                                            }
+                                            #endregion
+
+                                            #endregion
+                                        }
+                                        else
+                                        {
+                                            using (var package = new OfficeOpenXml.ExcelPackage(new System.IO.FileInfo(filecurrent)))
+                                            {
+                                                var worksheet = HelperExcel.GetWorksheetFirst(package);
+                                                #region current
+                                                if (worksheet != null && worksheet.Dimension != null)
+                                                {
+                                                    int row = 1, col = 1;
+                                                    while (itemCurrent.ListColumnTitle.Count < item.ColumnValueStart)
+                                                    {
+                                                        itemCurrent.ListColumnTitle.Add(string.Empty);
+                                                    }
+                                                    while (itemCurrent.ListRowTitle.Count < item.RowValueStart)
+                                                    {
+                                                        itemCurrent.ListRowTitle.Add(string.Empty);
+                                                    }
+
+                                                    for (row = item.RowValueStart; row <= item.RowValueEnd && row <= worksheet.Dimension.End.Row; row++)
+                                                    {
+                                                        var strTitle = HelperExcel.GetValue(worksheet, row, item.ColumnTitle);
+                                                        itemCurrent.ListRowTitle.Add(strTitle);
+                                                    }
+
+                                                    for (col = item.ColumnValueStart; col <= item.ColumnValueEnd && col <= worksheet.Dimension.End.Column; col++)
+                                                    {
+                                                        var strTitle = HelperExcel.GetValue(worksheet, item.RowTitle, col);
+                                                        itemCurrent.ListColumnTitle.Add(strTitle);
+                                                    }
+
+                                                    for (row = item.RowValueStart; row <= item.RowValueEnd && row <= worksheet.Dimension.End.Row; row++)
+                                                    {
+                                                        for (col = item.ColumnValueStart; col <= item.ColumnValueEnd && col <= worksheet.Dimension.End.Column; col++)
+                                                        {
+                                                            var strValue = HelperExcel.GetValue(worksheet, row, col);
+                                                            itemCurrent.ListCells.Add(new DTOAPIDataCell
+                                                            {
+                                                                Row = row,
+                                                                Column = col,
+                                                                ValueFrom = strValue,
+                                                                ValueTo = strValue
+                                                            });
+                                                        }
+                                                    }
+                                                }
+                                                #endregion
+                                            }
+
+                                            using (var package = new OfficeOpenXml.ExcelPackage(new System.IO.FileInfo(filetemppath)))
+                                            {
+                                                var worksheet = HelperExcel.GetWorksheetFirst(package);
+                                                #region next
+                                                if (worksheet != null && worksheet.Dimension != null)
+                                                {
+                                                    foreach (var itemCell in itemCurrent.ListCells)
+                                                    {
+                                                        if (itemCell.Row <= worksheet.Dimension.End.Row && itemCell.Column <= worksheet.Dimension.End.Column)
+                                                        {
+                                                            var strValue = HelperExcel.GetValue(worksheet, itemCell.Row, itemCell.Column);
+                                                            if (itemCell.ValueTo != strValue)
+                                                                itemCell.ValueTo = strValue;
+                                                        }
+                                                    }
+                                                }
+                                                #endregion
+                                            }
                                         }
 
                                         itemCurrent.ListCells = itemCurrent.ListCells.Where(c => c.ValueTo != c.ValueFrom).ToList();
