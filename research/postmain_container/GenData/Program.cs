@@ -761,7 +761,7 @@ namespace GenData
             itemEvent.script.exec = new List<string>()
             {
                 "pm.test(\"" + itemCase.Code + "_create\", function () {",
-                strSpace + "pm.response.to.have.status(204);",
+                strSpace + "pm.expect(pm.response.code).to.be.oneOf([200,204]);",
                 "});"
             };
             itemAdd._event.Add(itemEvent);
@@ -1358,7 +1358,7 @@ namespace GenData
             itemEvent.script.exec = new List<string>()
             {
                 "pm.test(\"" + name + "\", function () {",
-                strSpace + "pm.response.to.have.status(204);",
+                strSpace + "pm.expect(pm.response.code).to.be.oneOf([200,204]);",
                 "});"
             };
             itemAdd._event.Add(itemEvent);
@@ -1524,7 +1524,7 @@ namespace GenData
             itemEvent.script.exec = new List<string>()
             {
                 "pm.test(\"" + name + "\", function () {",
-                strSpace + "pm.response.to.have.status(204);",
+                strSpace + "pm.expect(pm.response.code).to.be.oneOf([200,204]);",
                 "});"
             };
             itemAdd._event.Add(itemEvent);
