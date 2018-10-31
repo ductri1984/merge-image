@@ -46,6 +46,8 @@ namespace GenData
                 if (args != null && args.Length > 0)
                     strSplit = args[0];
 
+                //strSplit = "Case004";
+
                 var folderapp = AppDomain.CurrentDomain.BaseDirectory;
                 if (folderapp[folderapp.Length - 1] != '\\')
                     folderapp += "\\";
@@ -1143,6 +1145,7 @@ namespace GenData
                                     " && current.SortFrom == " + cotocontainer.SortFrom + " && current.SortTo == " + cotocontainer.SortTo +
                                     " && current.COTOSort == " + cotocontainer.COTOSort + " && strswap == \"true\")",
                                 strSpace + strSpace + strSpace + strSpace + "prev = current;",
+                                strSpace + strSpace + strSpace + "if(prev == null) flag = false;",
                                 strSpace + strSpace + "}",
                                 strSpace + strSpace + "else flag = false;",
                             });
@@ -1158,6 +1161,7 @@ namespace GenData
                                     " && current.SortFrom == " + cotocontainer.SortFrom + " && current.SortTo == " + cotocontainer.SortTo +
                                     " && current.COTOSort == " + cotocontainer.COTOSort + ")",
                                 strSpace + strSpace + strSpace + strSpace + "prev = current;",
+                                strSpace + strSpace + strSpace + "if(prev == null) flag = false;",
                                 strSpace + strSpace + "}",
                                 strSpace + strSpace + "else flag = false;",
                             });
@@ -1214,6 +1218,7 @@ namespace GenData
                                     " && current.SortFrom == " + location.SortFrom + " && current.SortTo == " + location.SortTo +
                                     " && current.COTOSort == " + location.COTOSort + " && strswap == \"true\")",
                                 strSpace + strSpace + strSpace + strSpace + "prev = current;",
+                                strSpace + strSpace + strSpace + "if(prev == null) flag = false;",
                                 strSpace + strSpace + "}",
                                 strSpace + strSpace + "else flag = false;",
                             });
@@ -1229,6 +1234,7 @@ namespace GenData
                                     " && current.SortFrom == " + location.SortFrom + " && current.SortTo == " + location.SortTo +
                                     " && current.COTOSort == " + location.COTOSort + ")",
                                 strSpace + strSpace + strSpace + strSpace + "prev = current;",
+                                strSpace + strSpace + strSpace + "if(prev == null) flag = false;",
                                 strSpace + strSpace + "}",
                                 strSpace + strSpace + "else flag = false;",
                             });
