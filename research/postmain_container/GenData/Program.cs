@@ -568,6 +568,7 @@ namespace GenData
                                     objCollect.item.Add(objCollectAuth.item[1]);
 
                                 var itemMaster = itemCase.ListMaster[0];
+                                GenEditContainer(objCollect, hosttest, strSpace, itemCase);
                                 GenCreateMaster(objCollect, hosttest, strSpace, itemCase);
                                 GenCOTOContainerList(objCollect, hosttest, strSpace, itemCase.Code + "_getid" + itemMaster.ID, itemMaster);
                                 GenCOTOContainerCheck(objCollect, hosttest, strSpace, itemCase.Code + "_checkdata" + itemMaster.ID, itemMaster, lstMasterCheck);
@@ -727,6 +728,169 @@ namespace GenData
             });
 
             objCollect.item.Add(itemAdd);
+        }
+
+        private static void GenEditContainer(PMCollection objCollect, string hosttest, string strSpace, Case itemCase)
+        {
+            var host = "";
+            var port = "";
+            string[] strs = hosttest.Split(':');
+            if (strs.Length > 1)
+            {
+                host = strs[1].Replace("//", "");
+            }
+            if (strs.Length > 2)
+            {
+                port = strs[2];
+            }
+
+            foreach (var itemOrder in itemCase.ListOrder.Where(c => c.ServiceCode == ServiceCK && string.IsNullOrEmpty(c.MergerCode)))
+            {
+                if (!string.IsNullOrEmpty(itemOrder.DepotID))
+                {
+                    var itemAdd = new PMCollection_Item();
+                    itemAdd.name = itemCase.Code + "_edit" + itemOrder.OPSContainerID + "depot";
+                    itemAdd.response = new List<string>();
+                    itemAdd._event = new List<PMCollection_Event>();
+
+                    var itemEvent = new PMCollection_Event
+                    {
+                        listen = "test",
+                        script = new PMCollection_EventScript
+                        {
+                            id = Guid.NewGuid().ToString(),
+                            type = "text/javascript",
+                            exec = new List<string>()
+                        }
+                    };
+                    itemEvent.script.exec = new List<string>()
+                    {
+                        "pm.test(\"" + itemCase.Code + "_edit\", function () {",
+                        strSpace + "pm.expect(pm.response.code).to.be.oneOf([200,204]);",
+                        "});"
+                    };
+                    itemAdd._event.Add(itemEvent);
+
+                    itemAdd.request = new PMCollection_Request
+                    {
+                        method = "POST",
+                        description = itemCase.Description,
+                        header = new List<PMCollection_RequestHeader>(),
+                        body = new PMCollection_RequestBody
+                        {
+                            mode = "raw",
+                            raw = "{\"action\":{\"OPSContainerID\":"+ itemOrder.OPSContainerID + ",\"ActionType\":\"depotget\"," +
+                                "\"IsLocationOrder\":false,\"LocationID\":" + itemOrder.DepotID + "}}"
+                        },
+                        url = new PMCollection_RequestURL
+                        {
+                            raw = hosttest + "/api/OPS/OPSCON_PopupEditContainer_Action",
+                            protocol = "http",
+                            port = port,
+                            host = new List<string>() { host },
+                            path = new List<string>() { "api", "OPS", "OPSCON_PopupEditContainer_Action" }
+                        }
+                    };
+                    if (!string.IsNullOrEmpty(port))
+                    {
+                        itemAdd.request.url.port = port;
+                    }
+                    itemAdd.request.header.Add(new PMCollection_RequestHeader
+                    {
+                        key = "Content-Type",
+                        value = "application/json"
+                    });
+                    itemAdd.request.header.Add(new PMCollection_RequestHeader
+                    {
+                        key = "k",
+                        value = "{{k}}"
+                    });
+                    itemAdd.request.header.Add(new PMCollection_RequestHeader
+                    {
+                        key = "d",
+                        value = "{{d}}"
+                    });
+                    itemAdd.request.header.Add(new PMCollection_RequestHeader
+                    {
+                        key = "ListActionCode",
+                        value = "ActApproved,ActContainer,ActDel,ActEdit,ActExcel,ActOPS,ViewAdmin"
+                    });
+
+                    objCollect.item.Add(itemAdd);
+                }
+                if (!string.IsNullOrEmpty(itemOrder.DepotReturnID))
+                {
+                    var itemAdd = new PMCollection_Item();
+                    itemAdd.name = itemCase.Code + "_edit" + itemOrder.OPSContainerID + "depotreturn";
+                    itemAdd.response = new List<string>();
+                    itemAdd._event = new List<PMCollection_Event>();
+
+                    var itemEvent = new PMCollection_Event
+                    {
+                        listen = "test",
+                        script = new PMCollection_EventScript
+                        {
+                            id = Guid.NewGuid().ToString(),
+                            type = "text/javascript",
+                            exec = new List<string>()
+                        }
+                    };
+                    itemEvent.script.exec = new List<string>()
+                    {
+                        "pm.test(\"" + itemCase.Code + "_edit\", function () {",
+                        strSpace + "pm.expect(pm.response.code).to.be.oneOf([200,204]);",
+                        "});"
+                    };
+                    itemAdd._event.Add(itemEvent);
+
+                    itemAdd.request = new PMCollection_Request
+                    {
+                        method = "POST",
+                        description = itemCase.Description,
+                        header = new List<PMCollection_RequestHeader>(),
+                        body = new PMCollection_RequestBody
+                        {
+                            mode = "raw",
+                            raw = "{\"action\":{\"OPSContainerID\":" + itemOrder.OPSContainerID + ",\"ActionType\":\"depotreturn\"," +
+                                "\"IsLocationOrder\":false,\"LocationID\":" + itemOrder.DepotReturnID + "}}"
+                        },
+                        url = new PMCollection_RequestURL
+                        {
+                            raw = hosttest + "/api/OPS/OPSCON_PopupEditContainer_Action",
+                            protocol = "http",
+                            port = port,
+                            host = new List<string>() { host },
+                            path = new List<string>() { "api", "OPS", "OPSCON_PopupEditContainer_Action" }
+                        }
+                    };
+                    if (!string.IsNullOrEmpty(port))
+                    {
+                        itemAdd.request.url.port = port;
+                    }
+                    itemAdd.request.header.Add(new PMCollection_RequestHeader
+                    {
+                        key = "Content-Type",
+                        value = "application/json"
+                    });
+                    itemAdd.request.header.Add(new PMCollection_RequestHeader
+                    {
+                        key = "k",
+                        value = "{{k}}"
+                    });
+                    itemAdd.request.header.Add(new PMCollection_RequestHeader
+                    {
+                        key = "d",
+                        value = "{{d}}"
+                    });
+                    itemAdd.request.header.Add(new PMCollection_RequestHeader
+                    {
+                        key = "ListActionCode",
+                        value = "ActApproved,ActContainer,ActDel,ActEdit,ActExcel,ActOPS,ViewAdmin"
+                    });
+
+                    objCollect.item.Add(itemAdd);
+                }
+            }
         }
 
         private static void GenCreateMaster(PMCollection objCollect, string hosttest, string strSpace, Case itemCase)
