@@ -79,7 +79,7 @@ namespace GenData.GoogleSheets
                 {
                     if (dic.ContainsKey(sheet.Properties.Title))
                     {
-                        ranges.Add(sheet.Properties.Title + "!A1:BA1000");
+                        ranges.Add(sheet.Properties.Title + "!A1:BA2000");
                     }
                 }
 
