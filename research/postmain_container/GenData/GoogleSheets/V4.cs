@@ -31,7 +31,7 @@ namespace GenData.GoogleSheets
             return credential != null;
         }
 
-        public static bool CreateSheetFile(string pathCredential, string pathToken, string pathSpreadsheet, string spreadsheetId, List<string> lstSheetGet)
+        public static bool CreateSheetFile(string pathCredential, string pathToken, string pathSpreadsheet, string spreadsheetId, Dictionary<string, string> dicSheetGet)
         {
             //return true;
 
@@ -43,56 +43,37 @@ namespace GenData.GoogleSheets
                     throw new Exception("Not found pathSpreadsheet");
                 if (string.IsNullOrEmpty(spreadsheetId))
                     throw new Exception("Not found spreadsheetId");
-                if (lstSheetGet == null || lstSheetGet.Count == 0)
+                if (dicSheetGet == null || dicSheetGet.Count == 0)
                     throw new Exception("lstSheetGet is empty");
+
+                Dictionary<string, IList<RowData>> dic = new Dictionary<string, IList<RowData>>();
 
                 SheetsService sheetsService = new SheetsService(new BaseClientService.Initializer
                 {
                     HttpClientInitializer = credential,
                     ApplicationName = "Google-SheetsSample/0.1",
                 });
-
-                // The ranges to retrieve from the spreadsheet.
-                List<string> ranges = new List<string>();  // TODO: Update placeholder value.
-
-                // True if grid data should be returned.
-                // This parameter is ignored if a field mask was set in the request.
-                bool includeGridData = false;  // TODO: Update placeholder value.
-
+                
                 SpreadsheetsResource.GetRequest request = sheetsService.Spreadsheets.Get(spreadsheetId);
-                request.Ranges = ranges;
-                request.IncludeGridData = includeGridData;
-
+                request.Ranges = new List<string>();
+                request.IncludeGridData = false;
                 // To execute asynchronously in an async method, replace `request.Execute()` as shown:
                 Spreadsheet response = request.Execute();
-
-                Dictionary<string, IList<RowData>> dic = new Dictionary<string, IList<RowData>>();
-                foreach (var item in lstSheetGet)
-                {
-                    if (!dic.ContainsKey(item))
-                    {
-                        dic.Add(item, new List<RowData>());
-                    }
-                }
-
+                var lstSheets = new List<string>();
                 foreach (var sheet in response.Sheets)
                 {
-                    if (dic.ContainsKey(sheet.Properties.Title))
-                    {
-                        ranges.Add(sheet.Properties.Title + "!A1:BA2000");
-                    }
+                    lstSheets.Add(sheet.Properties.Title);
                 }
-
-                includeGridData = true;
-                request.Ranges = ranges;
-                request.IncludeGridData = includeGridData;
-
-                response = request.Execute();
-                foreach (var sheet in response.Sheets)
+                
+                foreach (var item in dicSheetGet)
                 {
-                    if (dic.ContainsKey(sheet.Properties.Title) && sheet.Data.Count == 1)
+                    if (!dic.ContainsKey(item.Key) && lstSheets.Contains(item.Key))
                     {
-                        dic[sheet.Properties.Title] = sheet.Data.FirstOrDefault().RowData;
+                        request.Ranges = new List<string> { item.Key + "!" + item.Value };
+                        request.IncludeGridData = true;
+                        // To execute asynchronously in an async method, replace `request.Execute()` as shown:
+                        response = request.Execute();
+                        dic.Add(item.Key, response.Sheets[0].Data.FirstOrDefault().RowData);
                     }
                 }
 

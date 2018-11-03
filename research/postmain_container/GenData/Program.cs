@@ -65,10 +65,10 @@ namespace GenData
                     System.IO.File.Delete(FileCollection1);
                 if (System.IO.File.Exists(FileSpreadsheet))
                     System.IO.File.Delete(FileSpreadsheet);
-                if (GoogleSheets.V4.CreateSheetFile(FileCredential, FileToken, FileSpreadsheet, GoogleSheetID, new List<string> {
-                    SheetContainer,
-                    SheetContainerData,
-                    SheetCheck
+                if (GoogleSheets.V4.CreateSheetFile(FileCredential, FileToken, FileSpreadsheet, GoogleSheetID, new Dictionary<string, string> {
+                    { SheetContainer, "A1:BC700" },
+                    { SheetContainerData, "A1:AB500" },
+                    { SheetCheck, "A1:AV2000" }
                 }))
                 {
                     if (System.IO.File.Exists(FileSpreadsheet))
