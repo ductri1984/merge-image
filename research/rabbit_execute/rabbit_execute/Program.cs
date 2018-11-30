@@ -33,9 +33,22 @@ namespace rabbit_execute
                     using (var connection = factory.CreateConnection())
                     using (var channel = connection.CreateModel())
                     {
-                        var str = Newtonsoft.Json.JsonConvert.SerializeObject(args);
+                        var lst = new List<string>();
+                        foreach (var item in args)
+                        {
+                            string s = item;
+                            if (s.StartsWith("\""))
+                                s = s.Substring(1);
+                            if (s[s.Length - 1] == '"')
+                                s = s.Substring(0, s.Length - 1);
+                            lst.Add(s);
+                        }
+
+                        var str = Newtonsoft.Json.JsonConvert.SerializeObject(lst);
                         channel.QueueDeclare(queue: strKey, durable: false, exclusive: false, autoDelete: false, arguments: null);
                         channel.BasicPublish("", strKey, null, Encoding.Unicode.GetBytes(str));
+
+                        LogData(str);
                     }
                 }
                 else
@@ -44,13 +57,12 @@ namespace rabbit_execute
                     using (var connection = factory.CreateConnection())
                     using (var channel = connection.CreateModel())
                     {
-
                         channel.QueueDeclare(queue: strKey, durable: false, exclusive: false, autoDelete: false, arguments: null);
                         var consumer = new EventingBasicConsumer(channel);
                         consumer.Received += Execute_Received;
                         channel.BasicConsume(queue: strKey, autoAck: true, consumer: consumer);
 
-                        Console.WriteLine("Host start ....");
+                        LogData("Host start ....");
                         Console.ReadLine();
                     }
                 }
@@ -69,7 +81,7 @@ namespace rabbit_execute
             {
                 var body = e.Body;
                 string str = Encoding.Unicode.GetString(body);
-                Console.WriteLine("Execute_Received");
+                LogData("Execute_Received", true);
 
                 var lst = Newtonsoft.Json.JsonConvert.DeserializeObject<string[]>(str);
 
@@ -78,7 +90,7 @@ namespace rabbit_execute
                     if (System.IO.Path.GetExtension(item) == ".exe")
                     {
                         Process.Start(item);
-                        Console.WriteLine("open " + item);
+                        LogData("open " + item);
                     }
                     else
                     {
@@ -91,6 +103,24 @@ namespace rabbit_execute
                 Console.WriteLine(ex.Message);
                 Console.ReadLine();
             }
+        }
+
+        static int logline = 0;
+
+        private static void LogData(string str, bool hasdate = false)
+        {
+            if (hasdate)
+            {
+                if (logline > 1200)
+                {
+                    Console.Clear();
+                    logline = 0;
+                }
+                Console.WriteLine(DateTime.Now.ToString("HH:mm:ss ") + str);
+            }
+            else
+                Console.WriteLine(str);
+            logline++;
         }
     }
 }
