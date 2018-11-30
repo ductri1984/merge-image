@@ -35,6 +35,12 @@ research/threejs/packages/
 research/threejs/threejs/bin/
 research/threejs/threejs/obj/
 
+research/rabbit_execute/.vs
+research/rabbit_execute/.vs/*
+research/rabbit_execute/packages/
+research/rabbit_execute/rabbit_execute/bin/
+research/rabbit_execute/rabbit_execute/obj/
+
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/.vs
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/.vs/*
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/packages/

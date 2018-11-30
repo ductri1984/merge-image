@@ -1,0 +1,4 @@
+Install-Package Newtonsoft.Json -Version 10.0.3
+Install-Package RabbitMQ.Client -Version 5.0.1
+
+
