@@ -19,9 +19,14 @@ namespace service_performance
         }
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        //private static List<RabbitServerInfo> _lst = new List<RabbitServerInfo>();
-        private System.Timers.Timer _timer = null;
-        private System.Timers.Timer _timerReset = null;
+        private InfoData _dto = default(InfoData);
+        private InfoData _dto1 = default(InfoData);
+        private InfoData _dto2 = default(InfoData);
+        private InfoData _dto3 = default(InfoData);
+        private System.Timers.Timer _timerGet = null;
+        private System.Timers.Timer _timerGetReset = null;
+        private System.Timers.Timer _timerSend = null;
+        private System.Timers.Timer _timerSendReset = null;
         private int _reset = 0;
         private bool _islog = false;
         private string _servername = string.Empty;
@@ -37,7 +42,7 @@ namespace service_performance
         {
             try
             {
-                var timerget = System.Configuration.ConfigurationManager.AppSettings.Get("TimerGet");
+                var timersend = System.Configuration.ConfigurationManager.AppSettings.Get("TimerSend");
                 var logdata = System.Configuration.ConfigurationManager.AppSettings.Get("LogData");
                 _servername = System.Configuration.ConfigurationManager.AppSettings.Get("ServerName");
 
@@ -50,9 +55,9 @@ namespace service_performance
                 var apiLink = System.Configuration.ConfigurationManager.AppSettings.Get("APILink");
                 var apiParam = System.Configuration.ConfigurationManager.AppSettings.Get("APIParam");
 
-                if (!string.IsNullOrEmpty(timerget) && !string.IsNullOrEmpty(logdata) && !string.IsNullOrEmpty(_servername))
+                if (!string.IsNullOrEmpty(timersend) && !string.IsNullOrEmpty(logdata) && !string.IsNullOrEmpty(_servername))
                 {
-                    int i = Convert.ToInt32(timerget);
+                    int i = Convert.ToInt32(timersend);
                     if (i > 0)
                     {
                         _islog = logdata == "true";
@@ -66,67 +71,28 @@ namespace service_performance
                         _apiLink = apiLink;
                         _apiParam = apiParam;
 
+                        _dto = GetInfo();
+
                         LogInfo("Start service (" + _servername + ")");
-                        _timer = new System.Timers.Timer(i);
-                        _timer.Elapsed += Timer_Elapsed;
-                        _timer.Enabled = true;
+                        _timerGet = new System.Timers.Timer(2000);//2s
+                        _timerGet.Elapsed += TimerGet_Elapsed;
+                        _timerGet.Enabled = true;
+                        _timerGetReset = new System.Timers.Timer(600000);//10p reset
+                        _timerGetReset.Enabled = false;
+                        _timerGetReset.Elapsed += TimerGetReset_Elapsed;
 
-                        _timerReset = new System.Timers.Timer(600000);//10p reset
-                        _timerReset.Enabled = false;
-                        _timerReset.Elapsed += TimerReset_Elapsed;
+                        _timerSend = new System.Timers.Timer(i);
+                        _timerSend.Elapsed += TimerGet_Elapsed;
+                        _timerSend.Enabled = true;
+                        _timerSendReset = new System.Timers.Timer(600000);//10p reset
+                        _timerSendReset.Enabled = false;
+                        _timerSendReset.Elapsed += TimerGetReset_Elapsed;
                     }
+                    else
+                        throw new Exception("TimerSend fail");
                 }
-
-                //if (!string.IsNullOrEmpty(rabbitHost) && !string.IsNullOrEmpty(rabbitPort) && !string.IsNullOrEmpty(rabbitUserName) && !string.IsNullOrEmpty(rabbitPassword) && !string.IsNullOrEmpty(rabbitKey))
-                //{
-                //    var splitHost = rabbitHost.Split(',');
-                //    var splitPort = rabbitPort.Split(',');
-                //    var splitUserName = rabbitUserName.Split(',');
-                //    var splitPassword = rabbitPassword.Split(',');
-                //    var splitKey = rabbitKey.Split(',');
-
-                //    if (splitHost.Length > 0 && splitHost.Length == splitPort.Length && splitHost.Length == splitUserName.Length && splitHost.Length == splitPassword.Length && splitHost.Length == splitKey.Length)
-                //    {
-                //        LogInfo("Lấy dữ liệu thiết lập");
-                //        for (int i = 0; i < splitHost.Length; i++)
-                //        {
-                //            var strHost = splitHost[i];
-                //            var strPort = splitPort[i];
-                //            var strUserName = splitUserName[i];
-                //            var strPassword = splitPassword[i];
-                //            var strKey = splitKey[i];
-
-                //            if (!string.IsNullOrEmpty(strHost) && !string.IsNullOrEmpty(strPort) && !string.IsNullOrEmpty(strUserName) && !string.IsNullOrEmpty(strPassword) && !string.IsNullOrEmpty(strKey))
-                //            {
-                //                var item = new RabbitServerInfo
-                //                {
-                //                    Host = strHost,
-                //                    Port = Convert.ToInt32(strPort),
-                //                    UserName = strUserName,
-                //                    Password = strPassword,
-                //                    Key = strKey
-                //                };
-                //                _lst.Add(item);
-                //            }
-                //        }
-                //        if (_lst.Count > 0)
-                //        {
-                //            int timerupdate = Convert.ToInt32(System.Configuration.ConfigurationSettings.AppSettings.Get("TimerUpdate"));
-                //            LogInfo("Start service (" + _lst.Count + ")");
-                //            _timer = new Timer(timerupdate);
-                //            _timer.Elapsed += Timer_Elapsed;
-                //            _timer.Enabled = true;
-
-                //            _timerReset = new Timer(600000);//10p reset
-                //            _timerReset.Enabled = false;
-                //            _timerReset.Elapsed += TimerReset_Elapsed;
-                //        }
-                //        else
-                //            throw new Exception("Không lấy được danh sách");
-                //    }
-                //    else
-                //        throw new Exception("Dữ liệu thiết lập không đúng");
-                //}
+                else
+                    throw new Exception("Config fail");
             }
             catch (Exception ex)
             {
@@ -134,13 +100,45 @@ namespace service_performance
             }
         }
 
-        protected void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        protected void TimerGet_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             try
             {
-                _timer.Enabled = false;
+                _timerGet.Enabled = false;
 
-                var dto = GetInfo();
+                _dto = GetInfo();
+
+                _timerGet.Enabled = true;
+            }
+            catch (Exception ex)
+            {
+                LogError(ex);
+                _timerGetReset.Enabled = true;
+            }
+        }
+
+        protected void TimerGetReset_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            try
+            {
+                _timerGetReset.Enabled = false;
+
+                LogInfo("Reset service (" + _reset + ")");
+                _reset++;
+
+                _timerGet.Enabled = true;
+            }
+            catch (Exception ex)
+            {
+                LogError(ex);
+            }
+        }
+
+        protected void TimerSend_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            try
+            {
+                _timerSend.Enabled = false;
 
                 if (!string.IsNullOrEmpty(_rabbitHost) && !string.IsNullOrEmpty(_rabbitKey) && _rabbitPort > 0)
                 {
@@ -149,35 +147,35 @@ namespace service_performance
                     using (var channel = connection.CreateModel())
                     {
                         channel.QueueDeclare(queue: _rabbitKey, durable: false, exclusive: false, autoDelete: false, arguments: null);
-                        string str = Newtonsoft.Json.JsonConvert.SerializeObject(dto);
+                        string str = Newtonsoft.Json.JsonConvert.SerializeObject(_dto);
                         channel.BasicPublish("", _rabbitKey, null, Encoding.Unicode.GetBytes(str));
                     }
                 }
 
                 if (!string.IsNullOrEmpty(_apiLink))
                 {
-                    string s = APICall(dto).Result;
+                    string s = APICall(_dto).Result;
                 }
 
-                _timer.Enabled = true;
+                _timerSend.Enabled = true;
             }
             catch (Exception ex)
             {
                 LogError(ex);
-                _timerReset.Enabled = true;
+                _timerSendReset.Enabled = true;
             }
         }
 
-        protected void TimerReset_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        protected void TimerSendReset_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             try
             {
-                _timerReset.Enabled = false;
+                _timerSendReset.Enabled = false;
 
                 LogInfo("Reset service (" + _reset + ")");
                 _reset++;
 
-                _timer.Enabled = true;
+                _timerSend.Enabled = true;
             }
             catch (Exception ex)
             {
@@ -189,13 +187,19 @@ namespace service_performance
         {
             try
             {
-                if (_timer != null)
-                    _timer.Enabled = false;
-                if (_timerReset != null)
-                    _timerReset.Enabled = false;
+                if (_timerGet != null)
+                    _timerGet.Enabled = false;
+                if (_timerGetReset != null)
+                    _timerGetReset.Enabled = false;
+                if (_timerSend != null)
+                    _timerSend.Enabled = false;
+                if (_timerSendReset != null)
+                    _timerSendReset.Enabled = false;
 
-                _timer = null;
-                _timerReset = null;
+                _timerGet = null;
+                _timerGetReset = null;
+                _timerSend = null;
+                _timerSendReset = null;
             }
             catch (Exception ex)
             {
@@ -207,11 +211,14 @@ namespace service_performance
         {
             if (!string.IsNullOrEmpty(message))
             {
-                log4net.LogicalThreadContext.Properties["Reset"] = _reset + "";
-                log4net.LogicalThreadContext.Properties["Date"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss fff");
-                log4net.LogicalThreadContext.Properties["DateTicks"] = DateTime.Now.Ticks.ToString();
-                log4net.LogicalThreadContext.Properties["StackTrace"] = "";
-                log.Info(message);
+                if (_islog)
+                {
+                    log4net.LogicalThreadContext.Properties["Reset"] = _reset + "";
+                    log4net.LogicalThreadContext.Properties["Date"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss fff");
+                    log4net.LogicalThreadContext.Properties["DateTicks"] = DateTime.Now.Ticks.ToString();
+                    log4net.LogicalThreadContext.Properties["StackTrace"] = "";
+                    log.Info(message);
+                }
             }
         }
 
@@ -222,7 +229,7 @@ namespace service_performance
                 log4net.LogicalThreadContext.Properties["Reset"] = _reset + "";
                 log4net.LogicalThreadContext.Properties["Date"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss fff");
                 log4net.LogicalThreadContext.Properties["DateTicks"] = DateTime.Now.Ticks.ToString();
-                log4net.LogicalThreadContext.Properties["StackTrace"] = ex.StackTrace;
+                log4net.LogicalThreadContext.Properties["StackTrace"] = Newtonsoft.Json.JsonConvert.SerializeObject(ex);
                 log.Error(ex.Message);
             }
         }
@@ -238,10 +245,106 @@ namespace service_performance
             result.ServerName = _servername;
             result.RabbitDate = DateTime.Now;
             result.CPUUsagePercent = cpuUsage.NextValue();
-            result.CPUUsagePercent = cpuUsage.NextValue();
-            result.CPUUsagePercent = cpuUsage.NextValue();
-            result.CPUUsagePercent = cpuUsage.NextValue();
+            result.RAMFreeMB = ramMBUsage.NextValue();
+            result.HDDFreePercent = hddPerUsage.NextValue();
+            result.HDDFreeMB = hddMBUsage.NextValue();
+            result.HDDHigh = false;
+            result.RAMHigh = false;
+            result.CPUHigh = false;
             PerformanceCounter.CloseSharedResources();
+
+            if (_dto2 != null)
+            {
+                _dto1 = new InfoData
+                {
+                    ServerName = _dto2.ServerName,
+                    RabbitDate = _dto2.RabbitDate,
+                    CPUUsagePercent = _dto2.CPUUsagePercent,
+                    RAMFreeMB = _dto2.RAMFreeMB,
+                    HDDFreePercent = _dto2.HDDFreePercent,
+                    HDDFreeMB = _dto2.HDDFreeMB,
+                    HDDHigh = _dto2.HDDHigh,
+                    RAMHigh = _dto2.RAMHigh,
+                    CPUHigh = _dto2.CPUHigh
+                };
+            }
+            if (_dto3 != null)
+            {
+                _dto2 = new InfoData
+                {
+                    ServerName = _dto3.ServerName,
+                    RabbitDate = _dto3.RabbitDate,
+                    CPUUsagePercent = _dto3.CPUUsagePercent,
+                    RAMFreeMB = _dto3.RAMFreeMB,
+                    HDDFreePercent = _dto3.HDDFreePercent,
+                    HDDFreeMB = _dto3.HDDFreeMB,
+                    HDDHigh = _dto3.HDDHigh,
+                    RAMHigh = _dto3.RAMHigh,
+                    CPUHigh = _dto3.CPUHigh
+                };
+            }
+            if (_dto != null)
+            {
+                _dto3 = new InfoData
+                {
+                    ServerName = _dto.ServerName,
+                    RabbitDate = _dto.RabbitDate,
+                    CPUUsagePercent = _dto.CPUUsagePercent,
+                    RAMFreeMB = _dto.RAMFreeMB,
+                    HDDFreePercent = _dto.HDDFreePercent,
+                    HDDFreeMB = _dto.HDDFreeMB,
+                    HDDHigh = _dto.HDDHigh,
+                    RAMHigh = _dto.RAMHigh,
+                    CPUHigh = _dto.CPUHigh
+                };
+            }
+            if (_dto3 != null && _dto2 != null)
+            {
+                int cpu = 0;
+                if (_dto2.CPUUsagePercent > 90)
+                    cpu++;
+                else if (_dto2.CPUUsagePercent > 85)
+                    cpu += 2;
+                if (_dto3.CPUUsagePercent > 90)
+                    cpu++;
+                else if (_dto3.CPUUsagePercent > 85)
+                    cpu += 2;
+                if (result.CPUUsagePercent > 90)
+                    cpu++;
+                else if (result.CPUUsagePercent > 85)
+                    cpu += 2;
+                result.CPUHigh = cpu >= 5;
+
+                int ram = 0;
+                if (_dto2.RAMFreeMB > 500)
+                    ram++;
+                else if (_dto2.RAMFreeMB > 200)
+                    ram += 2;
+                if (_dto3.RAMFreeMB > 500)
+                    ram++;
+                else if (_dto3.RAMFreeMB > 200)
+                    ram += 2;
+                if (result.RAMFreeMB > 500)
+                    ram++;
+                else if (result.RAMFreeMB > 200)
+                    ram += 2;
+                result.RAMHigh = ram >= 5;
+
+                int hdd = 0;
+                if (_dto2.HDDFreePercent > 10)
+                    hdd++;
+                else if (_dto2.HDDFreePercent > 5)
+                    hdd += 2;
+                if (_dto3.HDDFreePercent > 10)
+                    hdd++;
+                else if (_dto3.HDDFreePercent > 5)
+                    hdd += 2;
+                if (result.HDDFreePercent > 10)
+                    hdd++;
+                else if (result.HDDFreePercent > 5)
+                    hdd += 2;
+                result.HDDHigh = hdd >= 5;
+            }
 
             return result;
         }

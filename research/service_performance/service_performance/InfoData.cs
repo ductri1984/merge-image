@@ -11,8 +11,11 @@ namespace service_performance
         public string ServerName { get; set; }
         public float HDDFreePercent { get; set; }
         public float HDDFreeMB { get; set; }
+        public bool HDDHigh { get; set; }
         public float RAMFreeMB { get; set; }
+        public bool RAMHigh { get; set; }
         public float CPUUsagePercent { get; set; }
+        public bool CPUHigh { get; set; }
         public DateTime? RabbitDate { get; set; }
     }
 }
