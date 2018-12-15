@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "service_performance", "service_performance\service_performance.csproj", "{3298E087-D33B-427F-95CA-D202F112BA24}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "service_performance_setup", "service_performance_setup\service_performance_setup.vdproj", "{AE2FA5EF-6012-4B9E-8A3F-163BF3E873CE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3298E087-D33B-427F-95CA-D202F112BA24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3298E087-D33B-427F-95CA-D202F112BA24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3298E087-D33B-427F-95CA-D202F112BA24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3298E087-D33B-427F-95CA-D202F112BA24}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE2FA5EF-6012-4B9E-8A3F-163BF3E873CE}.Debug|Any CPU.ActiveCfg = Debug
+		{AE2FA5EF-6012-4B9E-8A3F-163BF3E873CE}.Release|Any CPU.ActiveCfg = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

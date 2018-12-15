@@ -41,6 +41,14 @@ research/rabbit_execute/packages/
 research/rabbit_execute/rabbit_execute/bin/
 research/rabbit_execute/rabbit_execute/obj/
 
+research/service_performance/.vs
+research/service_performance/.vs/*
+research/service_performance/packages/
+research/service_performance/service_performance/bin/
+research/service_performance/service_performance/obj/
+research/service_performance/service_performance_setup/Debug/
+research/service_performance/service_performance_setup/Release/
+
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/.vs
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/.vs/*
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/packages/
