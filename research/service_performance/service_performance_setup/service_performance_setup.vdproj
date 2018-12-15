@@ -15,32 +15,32 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_39F8A2C2777649B5A16DACCEB21D4289"
+        "MsmKey" = "8:_6BB97BBE0E8848E299F5868698494ADD"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_84E56FBE3BF490A4F79D8F6594FA60C8"
-        "OwnerKey" = "8:_39F8A2C2777649B5A16DACCEB21D4289"
+        "OwnerKey" = "8:_6BB97BBE0E8848E299F5868698494ADD"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_9D54F284728A0DB3E6B3624E0A776B9C"
-        "OwnerKey" = "8:_39F8A2C2777649B5A16DACCEB21D4289"
+        "OwnerKey" = "8:_6BB97BBE0E8848E299F5868698494ADD"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_B88777240DAC625B0087D643AE4F07E4"
-        "OwnerKey" = "8:_39F8A2C2777649B5A16DACCEB21D4289"
+        "OwnerKey" = "8:_6BB97BBE0E8848E299F5868698494ADD"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_DD76EB0249E8A8C6A6E67BB8CEC7ABD1"
-        "OwnerKey" = "8:_39F8A2C2777649B5A16DACCEB21D4289"
+        "OwnerKey" = "8:_6BB97BBE0E8848E299F5868698494ADD"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -52,7 +52,7 @@
         "Entry"
         {
         "MsmKey" = "8:_EA3EF33ADD959DAE73F2ADC3F6090792"
-        "OwnerKey" = "8:_39F8A2C2777649B5A16DACCEB21D4289"
+        "OwnerKey" = "8:_6BB97BBE0E8848E299F5868698494ADD"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -70,7 +70,7 @@
         "Entry"
         {
         "MsmKey" = "8:_FB7B0DA5C41495CBF4B46DB73E8371CE"
-        "OwnerKey" = "8:_39F8A2C2777649B5A16DACCEB21D4289"
+        "OwnerKey" = "8:_6BB97BBE0E8848E299F5868698494ADD"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -82,7 +82,7 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_39F8A2C2777649B5A16DACCEB21D4289"
+        "OwnerKey" = "8:_6BB97BBE0E8848E299F5868698494ADD"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
@@ -172,6 +172,14 @@
             "PrerequisitesLocation" = "2:1"
             "Url" = "8:"
             "ComponentsUrl" = "8:"
+                "Items"
+                {
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:.NETFramework,Version=v4.5"
+                    {
+                    "Name" = "8:Microsoft .NET Framework 4.5 (x86 and x64)"
+                    "ProductCode" = "8:.NETFramework,Version=v4.5"
+                    }
+                }
             }
         }
     }
@@ -179,31 +187,31 @@
     {
         "CustomAction"
         {
-            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_B65BDF322ED44DC5BDADCE7FBB2434FC"
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_2F976B19A11E4531A00A01D6822E3055"
             {
             "Name" = "8:Primary output from service_performance (Active)"
             "Condition" = "8:"
-            "Object" = "8:_39F8A2C2777649B5A16DACCEB21D4289"
+            "Object" = "8:_6BB97BBE0E8848E299F5868698494ADD"
             "FileType" = "3:2"
             "InstallAction" = "3:1"
             "Arguments" = "8:"
             "EntryPoint" = "8:"
             "Sequence" = "3:1"
-            "Identifier" = "8:_958A11F8_ACA2_4FB3_A6D7_43B842CBA4F2"
+            "Identifier" = "8:_EF051AF3_98D2_450E_B4E7_5D8D6BB2B7DB"
             "InstallerClass" = "11:TRUE"
             "CustomActionData" = "8:"
             }
-            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_D4A492D7DF864423A0BAE4F429F84EFC"
+            "{4AA51A2D-7D85-4A59-BA75-B0809FC8B380}:_D79577419E7A40DAAC83D60CCC21CAE1"
             {
             "Name" = "8:Primary output from service_performance (Active)"
             "Condition" = "8:"
-            "Object" = "8:_39F8A2C2777649B5A16DACCEB21D4289"
+            "Object" = "8:_6BB97BBE0E8848E299F5868698494ADD"
             "FileType" = "3:2"
             "InstallAction" = "3:4"
             "Arguments" = "8:"
             "EntryPoint" = "8:"
             "Sequence" = "3:1"
-            "Identifier" = "8:_5B362C28_7ACF_464E_8F06_9D3356A2C9AD"
+            "Identifier" = "8:_B913A6FF_46F3_465E_A1AC_452ADCB59C73"
             "InstallerClass" = "11:TRUE"
             "CustomActionData" = "8:"
             }
@@ -473,7 +481,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:service_performance_setup"
         "ProductCode" = "8:{152DB016-6C8F-414B-AE22-D94FC7957941}"
-        "PackageCode" = "8:{760EDE8B-FEFA-4980-966F-5312854A8DE7}"
+        "PackageCode" = "8:{D3827C60-2F82-4367-AA29-EA636FDD8683}"
         "UpgradeCode" = "8:{77258CE3-6938-471C-9549-46E2846E0FF8}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
@@ -992,7 +1000,7 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_39F8A2C2777649B5A16DACCEB21D4289"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_6BB97BBE0E8848E299F5868698494ADD"
             {
             "SourcePath" = "8:..\\service_performance\\obj\\Debug\\service_performance.exe"
             "TargetName" = "8:"

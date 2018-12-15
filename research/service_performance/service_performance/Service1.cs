@@ -82,11 +82,11 @@ namespace service_performance
                         _timerGetReset.Elapsed += TimerGetReset_Elapsed;
 
                         _timerSend = new System.Timers.Timer(i);
-                        _timerSend.Elapsed += TimerGet_Elapsed;
+                        _timerSend.Elapsed += TimerSend_Elapsed;
                         _timerSend.Enabled = true;
                         _timerSendReset = new System.Timers.Timer(600000);//10p reset
                         _timerSendReset.Enabled = false;
-                        _timerSendReset.Elapsed += TimerGetReset_Elapsed;
+                        _timerSendReset.Elapsed += TimerSendReset_Elapsed;
                     }
                     else
                         throw new Exception("TimerSend fail");
@@ -107,6 +107,8 @@ namespace service_performance
                 _timerGet.Enabled = false;
 
                 _dto = GetInfo();
+                if (_islog)
+                    LogInfo("TimerGet: " + Newtonsoft.Json.JsonConvert.SerializeObject(_dto));
 
                 _timerGet.Enabled = true;
             }
@@ -123,7 +125,8 @@ namespace service_performance
             {
                 _timerGetReset.Enabled = false;
 
-                LogInfo("Reset service (" + _reset + ")");
+                if (_islog)
+                    LogInfo("Reset service (" + _reset + ")");
                 _reset++;
 
                 _timerGet.Enabled = true;
@@ -140,6 +143,9 @@ namespace service_performance
             {
                 _timerSend.Enabled = false;
 
+                if (_islog)
+                    LogInfo("TimerSend start");
+
                 if (!string.IsNullOrEmpty(_rabbitHost) && !string.IsNullOrEmpty(_rabbitKey) && _rabbitPort > 0)
                 {
                     var factory = new ConnectionFactory() { HostName = _rabbitHost, Port = _rabbitPort, UserName = _rabbitUserName, Password = _rabbitPassword };
@@ -149,12 +155,18 @@ namespace service_performance
                         channel.QueueDeclare(queue: _rabbitKey, durable: false, exclusive: false, autoDelete: false, arguments: null);
                         string str = Newtonsoft.Json.JsonConvert.SerializeObject(_dto);
                         channel.BasicPublish("", _rabbitKey, null, Encoding.Unicode.GetBytes(str));
+
+                        if (_islog)
+                            LogInfo("TimerSend send rabbit");
                     }
                 }
 
                 if (!string.IsNullOrEmpty(_apiLink))
                 {
                     string s = APICall(_dto).Result;
+
+                    if (_islog)
+                        LogInfo("TimerSend send api");
                 }
 
                 _timerSend.Enabled = true;
@@ -172,7 +184,8 @@ namespace service_performance
             {
                 _timerSendReset.Enabled = false;
 
-                LogInfo("Reset service (" + _reset + ")");
+                if (_islog)
+                    LogInfo("Reset service (" + _reset + ")");
                 _reset++;
 
                 _timerSend.Enabled = true;
@@ -211,14 +224,11 @@ namespace service_performance
         {
             if (!string.IsNullOrEmpty(message))
             {
-                if (_islog)
-                {
-                    log4net.LogicalThreadContext.Properties["Reset"] = _reset + "";
-                    log4net.LogicalThreadContext.Properties["Date"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss fff");
-                    log4net.LogicalThreadContext.Properties["DateTicks"] = DateTime.Now.Ticks.ToString();
-                    log4net.LogicalThreadContext.Properties["StackTrace"] = "";
-                    log.Info(message);
-                }
+                log4net.LogicalThreadContext.Properties["Reset"] = _reset + "";
+                log4net.LogicalThreadContext.Properties["Date"] = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss fff");
+                log4net.LogicalThreadContext.Properties["DateTicks"] = DateTime.Now.Ticks.ToString();
+                log4net.LogicalThreadContext.Properties["StackTrace"] = "";
+                log.Info(message);
             }
         }
 
@@ -316,33 +326,33 @@ namespace service_performance
                 result.CPUHigh = cpu >= 5;
 
                 int ram = 0;
-                if (_dto2.RAMFreeMB > 500)
-                    ram++;
-                else if (_dto2.RAMFreeMB > 200)
+                if (_dto2.RAMFreeMB < 200)
                     ram += 2;
-                if (_dto3.RAMFreeMB > 500)
+                else if (_dto2.RAMFreeMB < 500)
                     ram++;
-                else if (_dto3.RAMFreeMB > 200)
+                if (_dto3.RAMFreeMB < 200)
                     ram += 2;
-                if (result.RAMFreeMB > 500)
+                else if (_dto3.RAMFreeMB < 500)
                     ram++;
-                else if (result.RAMFreeMB > 200)
+                if (result.RAMFreeMB < 200)
                     ram += 2;
+                else if (result.RAMFreeMB < 500)
+                    ram++;
                 result.RAMHigh = ram >= 5;
 
                 int hdd = 0;
-                if (_dto2.HDDFreePercent > 10)
-                    hdd++;
-                else if (_dto2.HDDFreePercent > 5)
+                if (_dto2.HDDFreePercent < 5)
                     hdd += 2;
-                if (_dto3.HDDFreePercent > 10)
+                else if (_dto2.HDDFreePercent < 10)
                     hdd++;
-                else if (_dto3.HDDFreePercent > 5)
+                if (_dto3.HDDFreePercent < 5)
                     hdd += 2;
-                if (result.HDDFreePercent > 10)
+                else if (_dto3.HDDFreePercent < 10)
                     hdd++;
-                else if (result.HDDFreePercent > 5)
+                if (result.HDDFreePercent < 5)
                     hdd += 2;
+                else if (result.HDDFreePercent < 10)
+                    hdd++;
                 result.HDDHigh = hdd >= 5;
             }
 
