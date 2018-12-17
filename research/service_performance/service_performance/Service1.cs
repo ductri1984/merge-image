@@ -19,16 +19,22 @@ namespace service_performance
         }
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private PerformanceCounter _cpuUsage = default(PerformanceCounter);
         private InfoData _dto = default(InfoData);
         private InfoData _dto1 = default(InfoData);
         private InfoData _dto2 = default(InfoData);
         private InfoData _dto3 = default(InfoData);
+        private double _totalPhysicalMemory = 0;
+        private float _cpuHighPercent = 5;
+        private float _ramHighPercent = 5;
+        private float _hddHighPercent = 5;
         private System.Timers.Timer _timerGet = null;
         private System.Timers.Timer _timerGetReset = null;
         private System.Timers.Timer _timerSend = null;
         private System.Timers.Timer _timerSendReset = null;
         private int _reset = 0;
         private bool _islog = false;
+        private bool _isSendHigh = false;
         private string _servername = string.Empty;
         private string _rabbitHost = string.Empty;
         private int _rabbitPort = 0;
@@ -55,12 +61,18 @@ namespace service_performance
                 var apiLink = System.Configuration.ConfigurationManager.AppSettings.Get("APILink");
                 var apiParam = System.Configuration.ConfigurationManager.AppSettings.Get("APIParam");
 
-                if (!string.IsNullOrEmpty(timersend) && !string.IsNullOrEmpty(logdata) && !string.IsNullOrEmpty(_servername))
+                var cpuHighPercent = System.Configuration.ConfigurationManager.AppSettings.Get("CPUHighPercent");
+                var ramHighPercent = System.Configuration.ConfigurationManager.AppSettings.Get("RAMHighPercent");
+                var hddHighPercent = System.Configuration.ConfigurationManager.AppSettings.Get("HDDHighPercent");
+                var sendHigh = System.Configuration.ConfigurationManager.AppSettings.Get("SendHigh");
+
+                if (!string.IsNullOrEmpty(timersend) && !string.IsNullOrEmpty(logdata) && !string.IsNullOrEmpty(_servername) && !string.IsNullOrEmpty(sendHigh))
                 {
                     int i = Convert.ToInt32(timersend);
                     if (i > 0)
                     {
                         _islog = logdata == "true";
+                        _isSendHigh = sendHigh == "true";
                         if (!string.IsNullOrEmpty(rabbitPort))
                             _rabbitPort = Convert.ToInt32(rabbitPort);
                         _rabbitHost = rabbitHost;
@@ -71,10 +83,22 @@ namespace service_performance
                         _apiLink = apiLink;
                         _apiParam = apiParam;
 
+                        if (!string.IsNullOrEmpty(cpuHighPercent))
+                            _cpuHighPercent = Convert.ToSingle(cpuHighPercent);
+                        if (!string.IsNullOrEmpty(ramHighPercent))
+                            _ramHighPercent = Convert.ToSingle(ramHighPercent);
+                        if (!string.IsNullOrEmpty(hddHighPercent))
+                            _hddHighPercent = Convert.ToSingle(hddHighPercent);
+                        if (_cpuHighPercent < 1 || _ramHighPercent < 1 || _hddHighPercent < 1)
+                            throw new Exception("HighPercent fail");
+
+                        Microsoft.VisualBasic.Devices.ComputerInfo ci = new Microsoft.VisualBasic.Devices.ComputerInfo();
+                        _totalPhysicalMemory = (ci.TotalPhysicalMemory / 1024) * 0.001;
+                        _cpuUsage = new PerformanceCounter("Processor", "% Processor Time", "_Total");
                         _dto = GetInfo();
 
                         LogInfo("Start service (" + _servername + ")");
-                        _timerGet = new System.Timers.Timer(2000);//2s
+                        _timerGet = new System.Timers.Timer(1000);//1s
                         _timerGet.Elapsed += TimerGet_Elapsed;
                         _timerGet.Enabled = true;
                         _timerGetReset = new System.Timers.Timer(600000);//10p reset
@@ -146,27 +170,39 @@ namespace service_performance
                 if (_islog)
                     LogInfo("TimerSend start");
 
-                if (!string.IsNullOrEmpty(_rabbitHost) && !string.IsNullOrEmpty(_rabbitKey) && _rabbitPort > 0)
+                bool flag = true;
+                if (_isSendHigh)
                 {
-                    var factory = new ConnectionFactory() { HostName = _rabbitHost, Port = _rabbitPort, UserName = _rabbitUserName, Password = _rabbitPassword };
-                    using (var connection = factory.CreateConnection())
-                    using (var channel = connection.CreateModel())
-                    {
-                        channel.QueueDeclare(queue: _rabbitKey, durable: false, exclusive: false, autoDelete: false, arguments: null);
-                        string str = Newtonsoft.Json.JsonConvert.SerializeObject(_dto);
-                        channel.BasicPublish("", _rabbitKey, null, Encoding.Unicode.GetBytes(str));
-
-                        if (_islog)
-                            LogInfo("TimerSend send rabbit");
-                    }
+                    flag = _dto.CPUHigh || _dto.RAMHigh || _dto.HDDHigh;
                 }
 
-                if (!string.IsNullOrEmpty(_apiLink))
-                {
-                    string s = APICall(_dto).Result;
+                if (_islog)
+                    LogInfo("TimerSend data: " + Newtonsoft.Json.JsonConvert.SerializeObject(_dto));
 
-                    if (_islog)
-                        LogInfo("TimerSend send api");
+                if (flag)
+                {
+                    if (!string.IsNullOrEmpty(_rabbitHost) && !string.IsNullOrEmpty(_rabbitKey) && _rabbitPort > 0)
+                    {
+                        var factory = new ConnectionFactory() { HostName = _rabbitHost, Port = _rabbitPort, UserName = _rabbitUserName, Password = _rabbitPassword };
+                        using (var connection = factory.CreateConnection())
+                        using (var channel = connection.CreateModel())
+                        {
+                            channel.QueueDeclare(queue: _rabbitKey, durable: false, exclusive: false, autoDelete: false, arguments: null);
+                            string str = Newtonsoft.Json.JsonConvert.SerializeObject(_dto);
+                            channel.BasicPublish("", _rabbitKey, null, Encoding.Unicode.GetBytes(str));
+
+                            if (_islog)
+                                LogInfo("TimerSend send rabbit");
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(_apiLink))
+                    {
+                        string s = APICall(_dto).Result;
+
+                        if (_islog)
+                            LogInfo("TimerSend send api");
+                    }
                 }
 
                 _timerSend.Enabled = true;
@@ -247,14 +283,14 @@ namespace service_performance
         private InfoData GetInfo()
         {
             var result = new InfoData();
-            var cpuUsage = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+            //var cpuUsage = new PerformanceCounter("Processor", "% Processor Time", "_Total");
             var ramMBUsage = new PerformanceCounter("Memory", "Available MBytes");
             var hddPerUsage = new PerformanceCounter("LogicalDisk", "% Free Space", "_Total", true);
             var hddMBUsage = new PerformanceCounter("LogicalDisk", "Free Megabytes", "_Total", true);
 
             result.ServerName = _servername;
             result.RabbitDate = DateTime.Now;
-            result.CPUUsagePercent = cpuUsage.NextValue();
+            result.CPUUsagePercent = _cpuUsage.NextValue();
             result.RAMFreeMB = ramMBUsage.NextValue();
             result.HDDFreePercent = hddPerUsage.NextValue();
             result.HDDFreeMB = hddMBUsage.NextValue();
@@ -311,47 +347,47 @@ namespace service_performance
             if (_dto3 != null && _dto2 != null)
             {
                 int cpu = 0;
-                if (_dto2.CPUUsagePercent > 90)
-                    cpu++;
-                else if (_dto2.CPUUsagePercent > 85)
+                if (_dto2.CPUUsagePercent > _cpuHighPercent)
                     cpu += 2;
-                if (_dto3.CPUUsagePercent > 90)
+                else if (_dto2.CPUUsagePercent > _cpuHighPercent - 5)
                     cpu++;
-                else if (_dto3.CPUUsagePercent > 85)
+                if (_dto3.CPUUsagePercent > _cpuHighPercent)
                     cpu += 2;
-                if (result.CPUUsagePercent > 90)
+                else if (_dto3.CPUUsagePercent > _cpuHighPercent - 5)
                     cpu++;
-                else if (result.CPUUsagePercent > 85)
+                if (result.CPUUsagePercent > _cpuHighPercent)
                     cpu += 2;
+                else if (result.CPUUsagePercent > _cpuHighPercent - 5)
+                    cpu++;
                 result.CPUHigh = cpu >= 5;
 
                 int ram = 0;
-                if (_dto2.RAMFreeMB < 200)
+                if (_dto2.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent)
                     ram += 2;
-                else if (_dto2.RAMFreeMB < 500)
+                else if (_dto2.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent + 5)
                     ram++;
-                if (_dto3.RAMFreeMB < 200)
+                if (_dto3.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent)
                     ram += 2;
-                else if (_dto3.RAMFreeMB < 500)
+                else if (_dto3.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent + 5)
                     ram++;
-                if (result.RAMFreeMB < 200)
+                if (result.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent)
                     ram += 2;
-                else if (result.RAMFreeMB < 500)
+                else if (result.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent + 5)
                     ram++;
                 result.RAMHigh = ram >= 5;
 
                 int hdd = 0;
-                if (_dto2.HDDFreePercent < 5)
+                if (_dto2.HDDFreePercent < _hddHighPercent)
                     hdd += 2;
-                else if (_dto2.HDDFreePercent < 10)
+                else if (_dto2.HDDFreePercent < _hddHighPercent + 5)
                     hdd++;
-                if (_dto3.HDDFreePercent < 5)
+                if (_dto3.HDDFreePercent < _hddHighPercent)
                     hdd += 2;
-                else if (_dto3.HDDFreePercent < 10)
+                else if (_dto3.HDDFreePercent < _hddHighPercent + 5)
                     hdd++;
-                if (result.HDDFreePercent < 5)
+                if (result.HDDFreePercent < _hddHighPercent)
                     hdd += 2;
-                else if (result.HDDFreePercent < 10)
+                else if (result.HDDFreePercent < _hddHighPercent + 5)
                     hdd++;
                 result.HDDHigh = hdd >= 5;
             }

@@ -5,3 +5,4 @@ Install-Package Microsoft.AspNet.WebApi.Client -Version 5.2.3
 
 Add Reference
 System.Configuration
+Microsoft.VisualBasic
