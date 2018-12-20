@@ -21,9 +21,11 @@ namespace service_performance
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private PerformanceCounter _cpuUsage = default(PerformanceCounter);
         private InfoData _dto = default(InfoData);
-        private InfoData _dto1 = default(InfoData);
-        private InfoData _dto2 = default(InfoData);
-        private InfoData _dto3 = default(InfoData);
+        private List<InfoData> _lstDTO = new List<InfoData>();
+        //private InfoData _dto1 = default(InfoData);
+        //private InfoData _dto2 = default(InfoData);
+        //private InfoData _dto3 = default(InfoData);
+        private int _secondCheck = 5;
         private double _totalPhysicalMemory = 0;
         private float _cpuHighPercent = 5;
         private float _ramHighPercent = 5;
@@ -65,12 +67,15 @@ namespace service_performance
                 var ramHighPercent = System.Configuration.ConfigurationManager.AppSettings.Get("RAMHighPercent");
                 var hddHighPercent = System.Configuration.ConfigurationManager.AppSettings.Get("HDDHighPercent");
                 var sendHigh = System.Configuration.ConfigurationManager.AppSettings.Get("SendHigh");
+                var secondCheck = System.Configuration.ConfigurationManager.AppSettings.Get("SecondCheck");
 
-                if (!string.IsNullOrEmpty(timersend) && !string.IsNullOrEmpty(logdata) && !string.IsNullOrEmpty(_servername) && !string.IsNullOrEmpty(sendHigh))
+                if (!string.IsNullOrEmpty(timersend) && !string.IsNullOrEmpty(logdata) && !string.IsNullOrEmpty(_servername) && !string.IsNullOrEmpty(sendHigh) && !string.IsNullOrEmpty(secondCheck))
                 {
                     int i = Convert.ToInt32(timersend);
-                    if (i > 0)
+                    _secondCheck = Convert.ToInt32(secondCheck);
+                    if (i > 0 && _secondCheck > 5)
                     {
+                        _lstDTO = new List<InfoData>();
                         _islog = logdata == "true";
                         _isSendHigh = sendHigh == "true";
                         if (!string.IsNullOrEmpty(rabbitPort))
@@ -299,98 +304,159 @@ namespace service_performance
             result.CPUHigh = false;
             PerformanceCounter.CloseSharedResources();
 
-            if (_dto2 != null)
+            if (_lstDTO != null)
             {
-                _dto1 = new InfoData
+                if (_lstDTO.Count >= _secondCheck)
                 {
-                    ServerName = _dto2.ServerName,
-                    RabbitDate = _dto2.RabbitDate,
-                    CPUUsagePercent = _dto2.CPUUsagePercent,
-                    RAMFreeMB = _dto2.RAMFreeMB,
-                    HDDFreePercent = _dto2.HDDFreePercent,
-                    HDDFreeMB = _dto2.HDDFreeMB,
-                    HDDHigh = _dto2.HDDHigh,
-                    RAMHigh = _dto2.RAMHigh,
-                    CPUHigh = _dto2.CPUHigh
-                };
-            }
-            if (_dto3 != null)
-            {
-                _dto2 = new InfoData
-                {
-                    ServerName = _dto3.ServerName,
-                    RabbitDate = _dto3.RabbitDate,
-                    CPUUsagePercent = _dto3.CPUUsagePercent,
-                    RAMFreeMB = _dto3.RAMFreeMB,
-                    HDDFreePercent = _dto3.HDDFreePercent,
-                    HDDFreeMB = _dto3.HDDFreeMB,
-                    HDDHigh = _dto3.HDDHigh,
-                    RAMHigh = _dto3.RAMHigh,
-                    CPUHigh = _dto3.CPUHigh
-                };
-            }
-            if (_dto != null)
-            {
-                _dto3 = new InfoData
-                {
-                    ServerName = _dto.ServerName,
-                    RabbitDate = _dto.RabbitDate,
-                    CPUUsagePercent = _dto.CPUUsagePercent,
-                    RAMFreeMB = _dto.RAMFreeMB,
-                    HDDFreePercent = _dto.HDDFreePercent,
-                    HDDFreeMB = _dto.HDDFreeMB,
-                    HDDHigh = _dto.HDDHigh,
-                    RAMHigh = _dto.RAMHigh,
-                    CPUHigh = _dto.CPUHigh
-                };
-            }
-            if (_dto3 != null && _dto2 != null)
-            {
-                int cpu = 0;
-                if (_dto2.CPUUsagePercent > _cpuHighPercent)
-                    cpu += 2;
-                else if (_dto2.CPUUsagePercent > _cpuHighPercent - 5)
-                    cpu++;
-                if (_dto3.CPUUsagePercent > _cpuHighPercent)
-                    cpu += 2;
-                else if (_dto3.CPUUsagePercent > _cpuHighPercent - 5)
-                    cpu++;
-                if (result.CPUUsagePercent > _cpuHighPercent)
-                    cpu += 2;
-                else if (result.CPUUsagePercent > _cpuHighPercent - 5)
-                    cpu++;
-                result.CPUHigh = cpu >= 5;
+                    int cpu = 0;
+                    int ram = 0;
+                    int hdd = 0;
 
-                int ram = 0;
-                if (_dto2.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent)
-                    ram += 2;
-                else if (_dto2.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent + 5)
-                    ram++;
-                if (_dto3.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent)
-                    ram += 2;
-                else if (_dto3.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent + 5)
-                    ram++;
-                if (result.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent)
-                    ram += 2;
-                else if (result.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent + 5)
-                    ram++;
-                result.RAMHigh = ram >= 5;
+                    foreach (var item in _lstDTO)
+                    {
+                        if (item.CPUUsagePercent > _cpuHighPercent)
+                            cpu += 2;
+                        else if (item.CPUUsagePercent > _cpuHighPercent - 5)
+                            cpu++;
+                        if (item.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent)
+                            ram += 2;
+                        else if (item.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent + 5)
+                            ram++;
+                        if (item.HDDFreePercent < _hddHighPercent)
+                            hdd += 2;
+                        else if (item.HDDFreePercent < _hddHighPercent + 5)
+                            hdd++;
+                    }
+                    if (result.CPUUsagePercent > _cpuHighPercent)
+                        cpu += 2;
+                    else if (result.CPUUsagePercent > _cpuHighPercent - 5)
+                        cpu++;
+                    if (result.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent)
+                        ram += 2;
+                    else if (result.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent + 5)
+                        ram++;
+                    if (result.HDDFreePercent < _hddHighPercent)
+                        hdd += 2;
+                    else if (result.HDDFreePercent < _hddHighPercent + 5)
+                        hdd++;
 
-                int hdd = 0;
-                if (_dto2.HDDFreePercent < _hddHighPercent)
-                    hdd += 2;
-                else if (_dto2.HDDFreePercent < _hddHighPercent + 5)
-                    hdd++;
-                if (_dto3.HDDFreePercent < _hddHighPercent)
-                    hdd += 2;
-                else if (_dto3.HDDFreePercent < _hddHighPercent + 5)
-                    hdd++;
-                if (result.HDDFreePercent < _hddHighPercent)
-                    hdd += 2;
-                else if (result.HDDFreePercent < _hddHighPercent + 5)
-                    hdd++;
-                result.HDDHigh = hdd >= 5;
+                    var check = ((_secondCheck + 1) * 2) - ((_secondCheck + 1) / 4);
+                    result.CPUHigh = cpu >= check;
+                    result.RAMHigh = ram >= check;
+                    result.HDDHigh = hdd >= check;
+
+                    if (_islog)
+                        LogInfo(string.Format("CPU:{1}>={0} RAM:{2}>={0} HDD:{3}>={0}", check, cpu, ram, hdd));
+
+                    _lstDTO.RemoveAt(_lstDTO.Count - 1);
+                }
+
+                _lstDTO.Insert(0, new InfoData
+                {
+                    ServerName = result.ServerName,
+                    RabbitDate = result.RabbitDate,
+                    CPUUsagePercent = result.CPUUsagePercent,
+                    RAMFreeMB = result.RAMFreeMB,
+                    HDDFreePercent = result.HDDFreePercent,
+                    HDDFreeMB = result.HDDFreeMB,
+                    HDDHigh = result.HDDHigh,
+                    RAMHigh = result.RAMHigh,
+                    CPUHigh = result.CPUHigh
+                });
             }
+
+            //if (_dto2 != null)
+            //{
+            //    _dto1 = new InfoData
+            //    {
+            //        ServerName = _dto2.ServerName,
+            //        RabbitDate = _dto2.RabbitDate,
+            //        CPUUsagePercent = _dto2.CPUUsagePercent,
+            //        RAMFreeMB = _dto2.RAMFreeMB,
+            //        HDDFreePercent = _dto2.HDDFreePercent,
+            //        HDDFreeMB = _dto2.HDDFreeMB,
+            //        HDDHigh = _dto2.HDDHigh,
+            //        RAMHigh = _dto2.RAMHigh,
+            //        CPUHigh = _dto2.CPUHigh
+            //    };
+            //}
+            //if (_dto3 != null)
+            //{
+            //    _dto2 = new InfoData
+            //    {
+            //        ServerName = _dto3.ServerName,
+            //        RabbitDate = _dto3.RabbitDate,
+            //        CPUUsagePercent = _dto3.CPUUsagePercent,
+            //        RAMFreeMB = _dto3.RAMFreeMB,
+            //        HDDFreePercent = _dto3.HDDFreePercent,
+            //        HDDFreeMB = _dto3.HDDFreeMB,
+            //        HDDHigh = _dto3.HDDHigh,
+            //        RAMHigh = _dto3.RAMHigh,
+            //        CPUHigh = _dto3.CPUHigh
+            //    };
+            //}
+            //if (_dto != null)
+            //{
+            //    _dto3 = new InfoData
+            //    {
+            //        ServerName = _dto.ServerName,
+            //        RabbitDate = _dto.RabbitDate,
+            //        CPUUsagePercent = _dto.CPUUsagePercent,
+            //        RAMFreeMB = _dto.RAMFreeMB,
+            //        HDDFreePercent = _dto.HDDFreePercent,
+            //        HDDFreeMB = _dto.HDDFreeMB,
+            //        HDDHigh = _dto.HDDHigh,
+            //        RAMHigh = _dto.RAMHigh,
+            //        CPUHigh = _dto.CPUHigh
+            //    };
+            //}
+            //if (_dto3 != null && _dto2 != null)
+            //{
+            //    int cpu = 0;
+            //    if (_dto2.CPUUsagePercent > _cpuHighPercent)
+            //        cpu += 2;
+            //    else if (_dto2.CPUUsagePercent > _cpuHighPercent - 5)
+            //        cpu++;
+            //    if (_dto3.CPUUsagePercent > _cpuHighPercent)
+            //        cpu += 2;
+            //    else if (_dto3.CPUUsagePercent > _cpuHighPercent - 5)
+            //        cpu++;
+            //    if (result.CPUUsagePercent > _cpuHighPercent)
+            //        cpu += 2;
+            //    else if (result.CPUUsagePercent > _cpuHighPercent - 5)
+            //        cpu++;
+            //    result.CPUHigh = cpu >= 5;
+
+            //    int ram = 0;
+            //    if (_dto2.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent)
+            //        ram += 2;
+            //    else if (_dto2.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent + 5)
+            //        ram++;
+            //    if (_dto3.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent)
+            //        ram += 2;
+            //    else if (_dto3.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent + 5)
+            //        ram++;
+            //    if (result.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent)
+            //        ram += 2;
+            //    else if (result.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent + 5)
+            //        ram++;
+            //    result.RAMHigh = ram >= 5;
+
+            //    int hdd = 0;
+            //    if (_dto2.HDDFreePercent < _hddHighPercent)
+            //        hdd += 2;
+            //    else if (_dto2.HDDFreePercent < _hddHighPercent + 5)
+            //        hdd++;
+            //    if (_dto3.HDDFreePercent < _hddHighPercent)
+            //        hdd += 2;
+            //    else if (_dto3.HDDFreePercent < _hddHighPercent + 5)
+            //        hdd++;
+            //    if (result.HDDFreePercent < _hddHighPercent)
+            //        hdd += 2;
+            //    else if (result.HDDFreePercent < _hddHighPercent + 5)
+            //        hdd++;
+            //    result.HDDHigh = hdd >= 5;
+            //}
 
             return result;
         }
