@@ -22,9 +22,6 @@ namespace service_performance
         private PerformanceCounter _cpuUsage = default(PerformanceCounter);
         private InfoData _dto = default(InfoData);
         private List<InfoData> _lstDTO = new List<InfoData>();
-        //private InfoData _dto1 = default(InfoData);
-        //private InfoData _dto2 = default(InfoData);
-        //private InfoData _dto3 = default(InfoData);
         private int _secondCheck = 5;
         private double _totalPhysicalMemory = 0;
         private float _cpuHighPercent = 5;
@@ -45,6 +42,11 @@ namespace service_performance
         private string _rabbitKey = string.Empty;
         private string _apiLink = string.Empty;
         private string _apiParam = string.Empty;
+        private string _batchInit = string.Empty;
+        private string _batchCheck = string.Empty;
+        private bool _batchRun = false;
+        private bool _batchComplete = false;
+        private string _batchLastOutput = string.Empty;
 
         protected override void OnStart(string[] args)
         {
@@ -68,6 +70,8 @@ namespace service_performance
                 var hddHighPercent = System.Configuration.ConfigurationManager.AppSettings.Get("HDDHighPercent");
                 var sendHigh = System.Configuration.ConfigurationManager.AppSettings.Get("SendHigh");
                 var secondCheck = System.Configuration.ConfigurationManager.AppSettings.Get("SecondCheck");
+                _batchInit = System.Configuration.ConfigurationManager.AppSettings.Get("BatchInit");
+                _batchCheck = System.Configuration.ConfigurationManager.AppSettings.Get("BatchCheck");
 
                 if (!string.IsNullOrEmpty(timersend) && !string.IsNullOrEmpty(logdata) && !string.IsNullOrEmpty(_servername) && !string.IsNullOrEmpty(sendHigh) && !string.IsNullOrEmpty(secondCheck))
                 {
@@ -116,6 +120,98 @@ namespace service_performance
                         _timerSendReset = new System.Timers.Timer(600000);//10p reset
                         _timerSendReset.Enabled = false;
                         _timerSendReset.Elapsed += TimerSendReset_Elapsed;
+
+                        //if(!string.IsNullOrEmpty(_batchClose) && !string.IsNullOrEmpty(_batchRun))
+                        //{
+                        //    //int exitCode;
+                        //    //ProcessStartInfo processInfo;
+                        //    //Process process;
+
+                        //    ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + _batchClose);
+                        //    processInfo.CreateNoWindow = true;
+                        //    processInfo.UseShellExecute = false;
+                        //    // *** Redirect the output ***
+                        //    processInfo.RedirectStandardError = false;
+                        //    processInfo.RedirectStandardOutput = false;
+
+                        //    Process.Start(processInfo);
+                        //    //process = Process.Start(processInfo);
+                        //    //process.Start();
+
+                        //    //// *** Read the streams ***
+                        //    //// Warning: This approach can lead to deadlocks, see Edit #2
+                        //    //string output = process.StandardOutput.ReadToEnd();
+                        //    //string error = process.StandardError.ReadToEnd();
+
+                        //    //exitCode = process.ExitCode;
+
+                        //    //if (!_islog)
+                        //    //{
+                        //    //    LogInfo("output>>" + (String.IsNullOrEmpty(output) ? "(none)" : output));
+                        //    //    LogInfo("error>>" + (String.IsNullOrEmpty(error) ? "(none)" : error));
+                        //    //    LogInfo("ExitCode: " + exitCode.ToString());
+                        //    //}
+
+                        //    ////Console.WriteLine("output>>" + (String.IsNullOrEmpty(output) ? "(none)" : output));
+                        //    ////Console.WriteLine("error>>" + (String.IsNullOrEmpty(error) ? "(none)" : error));
+                        //    ////Console.WriteLine("ExitCode: " + exitCode.ToString(), "ExecuteCommand");
+                        //    //process.Close();
+                        //}
+
+                        //if (!string.IsNullOrEmpty(_initexe))
+                        //{
+                        //    string[] strs = _initexe.Split(';');
+                        //    if (strs != null && strs.Length > 0)
+                        //    {
+                        //        foreach (var s in strs)
+                        //        {
+                        //            if (!string.IsNullOrEmpty(s))
+                        //            {
+                        //                if (System.IO.Path.GetExtension(s) == ".exe")
+                        //                {
+                        //                    try
+                        //                    {
+                        //                        var lstpro = Process.GetProcesses();
+                        //                        if (_islog && lstpro != null)
+                        //                            LogInfo("Proccess: " + Newtonsoft.Json.JsonConvert.SerializeObject(lstpro));
+
+                        //                        //Find process
+                        //                        foreach (Process Proc in (from p in Process.GetProcesses() where p.ProcessName == s select p))
+                        //                        {
+                        //                            // "Kill" the process
+                        //                            Proc.Kill();
+
+                        //                            if (_islog)
+                        //                                LogInfo("Kill " + s);
+                        //                        }
+                        //                    }
+                        //                    catch (Win32Exception ex)
+                        //                    {
+                        //                        // The associated process could not be terminated.
+                        //                        // or The process is terminating.
+                        //                        // or The associated process is a Win16 executable.
+                        //                        if (_islog)
+                        //                            LogInfo(s + ": " + Newtonsoft.Json.JsonConvert.SerializeObject(ex));
+                        //                    }
+                        //                    catch (NotSupportedException ex)
+                        //                    {
+                        //                        // You are attempting to call Kill for a process that is running on a remote computer. 
+                        //                        // The method is available only for processes running on the local computer.
+                        //                        if (_islog)
+                        //                            LogInfo(s + ": " + Newtonsoft.Json.JsonConvert.SerializeObject(ex));
+                        //                    }
+                        //                    catch (InvalidOperationException ex)
+                        //                    {
+                        //                        // The process has already exited.
+                        //                        // or There is no process associated with this Process object.
+                        //                        if (_islog)
+                        //                            LogInfo(s + ": " + Newtonsoft.Json.JsonConvert.SerializeObject(ex));
+                        //                    }
+                        //                }
+                        //            }
+                        //        }
+                        //    }
+                        //}
                     }
                     else
                         throw new Exception("TimerSend fail");
@@ -207,6 +303,85 @@ namespace service_performance
 
                         if (_islog)
                             LogInfo("TimerSend send api");
+                    }
+
+                    _lstDTO.Clear();
+                }
+                if (!_batchComplete)
+                {
+                    if (_islog)
+                        LogInfo("_batchLastOutput: " + _batchLastOutput);
+
+                    if (!_batchRun)
+                    {
+                        if (!string.IsNullOrEmpty(_batchInit) && !string.IsNullOrEmpty(_batchCheck))
+                        {
+                            ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + _batchInit);
+                            processInfo.CreateNoWindow = true;
+                            processInfo.UseShellExecute = false;
+                            processInfo.RedirectStandardError = true;
+                            processInfo.RedirectStandardOutput = true;
+
+                            var process = Process.Start(processInfo);
+                            process.OutputDataReceived += (object senderprocess, DataReceivedEventArgs eprocess) =>
+                            {
+                                if (_islog)
+                                    LogInfo("output>>" + eprocess.Data);
+                            };
+                            process.BeginOutputReadLine();
+
+                            process.ErrorDataReceived += (object senderprocess, DataReceivedEventArgs eprocess) =>
+                            {
+                                if (_islog)
+                                    LogInfo("error>>" + eprocess.Data);
+                            };
+                            process.BeginErrorReadLine();
+                            process.Start();
+                            process.Close();
+                        }
+
+                        _batchLastOutput = string.Empty;
+                        _batchRun = true;
+                    }
+                    else if (!string.IsNullOrEmpty(_batchLastOutput))
+                    {
+                        if (_batchLastOutput == "true")
+                        {
+                            _batchComplete = true;
+                            if (_islog)
+                                LogInfo("batch complete");
+                        }
+                        else
+                            throw new Exception("fail batch file");
+                    }
+                    else
+                    {
+                        ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + _batchCheck);
+                        processInfo.CreateNoWindow = true;
+                        processInfo.UseShellExecute = false;
+                        processInfo.RedirectStandardError = true;
+                        processInfo.RedirectStandardOutput = true;
+
+                        var process = Process.Start(processInfo);
+                        process.OutputDataReceived += (object senderprocess, DataReceivedEventArgs eprocess) =>
+                        {
+                            if (_islog)
+                                LogInfo("output>>" + eprocess.Data);
+                            if (_batchLastOutput != "true")
+                                _batchLastOutput = eprocess.Data;
+                            if (!string.IsNullOrEmpty(_batchLastOutput))
+                                _batchLastOutput = _batchLastOutput.ToLower().Trim();
+                        };
+                        process.BeginOutputReadLine();
+
+                        process.ErrorDataReceived += (object senderprocess, DataReceivedEventArgs eprocess) =>
+                        {
+                            if (_islog)
+                                LogInfo("error>>" + eprocess.Data);
+                        };
+                        process.BeginErrorReadLine();
+                        process.Start();
+                        process.Close();
                     }
                 }
 
