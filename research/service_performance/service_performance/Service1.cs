@@ -42,8 +42,10 @@ namespace service_performance
         private string _rabbitKey = string.Empty;
         private string _apiLink = string.Empty;
         private string _apiParam = string.Empty;
-        private string _batchInit = string.Empty;
-        private string _batchCheck = string.Empty;
+        private string _batchFileInit = string.Empty;
+        private string _batchFileCheck = string.Empty;
+        private string _batchFileClear = string.Empty;
+        private bool _batchClear = false;
         private bool _batchRun = false;
         private bool _batchComplete = false;
         private string _batchLastOutput = string.Empty;
@@ -70,8 +72,9 @@ namespace service_performance
                 var hddHighPercent = System.Configuration.ConfigurationManager.AppSettings.Get("HDDHighPercent");
                 var sendHigh = System.Configuration.ConfigurationManager.AppSettings.Get("SendHigh");
                 var secondCheck = System.Configuration.ConfigurationManager.AppSettings.Get("SecondCheck");
-                _batchInit = System.Configuration.ConfigurationManager.AppSettings.Get("BatchInit");
-                _batchCheck = System.Configuration.ConfigurationManager.AppSettings.Get("BatchCheck");
+                _batchFileInit = System.Configuration.ConfigurationManager.AppSettings.Get("BatchInit");
+                _batchFileCheck = System.Configuration.ConfigurationManager.AppSettings.Get("BatchCheck");
+                _batchFileClear = System.Configuration.ConfigurationManager.AppSettings.Get("BatchClear");
 
                 if (!string.IsNullOrEmpty(timersend) && !string.IsNullOrEmpty(logdata) && !string.IsNullOrEmpty(_servername) && !string.IsNullOrEmpty(sendHigh) && !string.IsNullOrEmpty(secondCheck))
                 {
@@ -91,6 +94,10 @@ namespace service_performance
 
                         _apiLink = apiLink;
                         _apiParam = apiParam;
+
+                        _batchClear = false;
+                        _batchRun = false;
+                        _batchComplete = false;
 
                         if (!string.IsNullOrEmpty(cpuHighPercent))
                             _cpuHighPercent = Convert.ToSingle(cpuHighPercent);
@@ -120,98 +127,6 @@ namespace service_performance
                         _timerSendReset = new System.Timers.Timer(600000);//10p reset
                         _timerSendReset.Enabled = false;
                         _timerSendReset.Elapsed += TimerSendReset_Elapsed;
-
-                        //if(!string.IsNullOrEmpty(_batchClose) && !string.IsNullOrEmpty(_batchRun))
-                        //{
-                        //    //int exitCode;
-                        //    //ProcessStartInfo processInfo;
-                        //    //Process process;
-
-                        //    ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + _batchClose);
-                        //    processInfo.CreateNoWindow = true;
-                        //    processInfo.UseShellExecute = false;
-                        //    // *** Redirect the output ***
-                        //    processInfo.RedirectStandardError = false;
-                        //    processInfo.RedirectStandardOutput = false;
-
-                        //    Process.Start(processInfo);
-                        //    //process = Process.Start(processInfo);
-                        //    //process.Start();
-
-                        //    //// *** Read the streams ***
-                        //    //// Warning: This approach can lead to deadlocks, see Edit #2
-                        //    //string output = process.StandardOutput.ReadToEnd();
-                        //    //string error = process.StandardError.ReadToEnd();
-
-                        //    //exitCode = process.ExitCode;
-
-                        //    //if (!_islog)
-                        //    //{
-                        //    //    LogInfo("output>>" + (String.IsNullOrEmpty(output) ? "(none)" : output));
-                        //    //    LogInfo("error>>" + (String.IsNullOrEmpty(error) ? "(none)" : error));
-                        //    //    LogInfo("ExitCode: " + exitCode.ToString());
-                        //    //}
-
-                        //    ////Console.WriteLine("output>>" + (String.IsNullOrEmpty(output) ? "(none)" : output));
-                        //    ////Console.WriteLine("error>>" + (String.IsNullOrEmpty(error) ? "(none)" : error));
-                        //    ////Console.WriteLine("ExitCode: " + exitCode.ToString(), "ExecuteCommand");
-                        //    //process.Close();
-                        //}
-
-                        //if (!string.IsNullOrEmpty(_initexe))
-                        //{
-                        //    string[] strs = _initexe.Split(';');
-                        //    if (strs != null && strs.Length > 0)
-                        //    {
-                        //        foreach (var s in strs)
-                        //        {
-                        //            if (!string.IsNullOrEmpty(s))
-                        //            {
-                        //                if (System.IO.Path.GetExtension(s) == ".exe")
-                        //                {
-                        //                    try
-                        //                    {
-                        //                        var lstpro = Process.GetProcesses();
-                        //                        if (_islog && lstpro != null)
-                        //                            LogInfo("Proccess: " + Newtonsoft.Json.JsonConvert.SerializeObject(lstpro));
-
-                        //                        //Find process
-                        //                        foreach (Process Proc in (from p in Process.GetProcesses() where p.ProcessName == s select p))
-                        //                        {
-                        //                            // "Kill" the process
-                        //                            Proc.Kill();
-
-                        //                            if (_islog)
-                        //                                LogInfo("Kill " + s);
-                        //                        }
-                        //                    }
-                        //                    catch (Win32Exception ex)
-                        //                    {
-                        //                        // The associated process could not be terminated.
-                        //                        // or The process is terminating.
-                        //                        // or The associated process is a Win16 executable.
-                        //                        if (_islog)
-                        //                            LogInfo(s + ": " + Newtonsoft.Json.JsonConvert.SerializeObject(ex));
-                        //                    }
-                        //                    catch (NotSupportedException ex)
-                        //                    {
-                        //                        // You are attempting to call Kill for a process that is running on a remote computer. 
-                        //                        // The method is available only for processes running on the local computer.
-                        //                        if (_islog)
-                        //                            LogInfo(s + ": " + Newtonsoft.Json.JsonConvert.SerializeObject(ex));
-                        //                    }
-                        //                    catch (InvalidOperationException ex)
-                        //                    {
-                        //                        // The process has already exited.
-                        //                        // or There is no process associated with this Process object.
-                        //                        if (_islog)
-                        //                            LogInfo(s + ": " + Newtonsoft.Json.JsonConvert.SerializeObject(ex));
-                        //                    }
-                        //                }
-                        //            }
-                        //        }
-                        //    }
-                        //}
                     }
                     else
                         throw new Exception("TimerSend fail");
@@ -307,16 +222,52 @@ namespace service_performance
 
                     _lstDTO.Clear();
                 }
-                if (!_batchComplete)
+                if (!_batchClear)
+                {
+                    if (!string.IsNullOrEmpty(_batchFileClear))
+                    {
+                        if (_islog)
+                            LogInfo("batch clear");
+
+                        ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + _batchFileClear);
+                        processInfo.CreateNoWindow = true;
+                        processInfo.UseShellExecute = false;
+                        processInfo.RedirectStandardError = true;
+                        processInfo.RedirectStandardOutput = true;
+
+                        var process = Process.Start(processInfo);
+                        process.OutputDataReceived += (object senderprocess, DataReceivedEventArgs eprocess) =>
+                        {
+                            if (_islog)
+                                LogInfo("output>>" + eprocess.Data);
+                        };
+                        process.BeginOutputReadLine();
+
+                        process.ErrorDataReceived += (object senderprocess, DataReceivedEventArgs eprocess) =>
+                        {
+                            if (_islog)
+                                LogInfo("error>>" + eprocess.Data);
+                        };
+                        process.BeginErrorReadLine();
+                        process.Start();
+                        process.Close();
+
+                        _batchClear = true;
+                    }
+                }
+                else if (!_batchComplete)
                 {
                     if (_islog)
                         LogInfo("_batchLastOutput: " + _batchLastOutput);
 
                     if (!_batchRun)
                     {
-                        if (!string.IsNullOrEmpty(_batchInit) && !string.IsNullOrEmpty(_batchCheck))
+                        if (_islog)
+                            LogInfo("batch init");
+
+                        if (!string.IsNullOrEmpty(_batchFileInit) && !string.IsNullOrEmpty(_batchFileCheck))
                         {
-                            ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + _batchInit);
+                            ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + _batchFileInit);
                             processInfo.CreateNoWindow = true;
                             processInfo.UseShellExecute = false;
                             processInfo.RedirectStandardError = true;
@@ -345,18 +296,22 @@ namespace service_performance
                     }
                     else if (!string.IsNullOrEmpty(_batchLastOutput))
                     {
+                        if (_islog)
+                            LogInfo("batch complete");
+
                         if (_batchLastOutput == "true")
                         {
-                            _batchComplete = true;
-                            if (_islog)
-                                LogInfo("batch complete");
+                            _batchComplete = true;                            
                         }
                         else
                             throw new Exception("fail batch file");
                     }
                     else
                     {
-                        ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + _batchCheck);
+                        if (_islog)
+                            LogInfo("batch check");
+
+                        ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + _batchFileCheck);
                         processInfo.CreateNoWindow = true;
                         processInfo.UseShellExecute = false;
                         processInfo.RedirectStandardError = true;
@@ -428,7 +383,7 @@ namespace service_performance
                 _timerGet = null;
                 _timerGetReset = null;
                 _timerSend = null;
-                _timerSendReset = null;
+                _timerSendReset = null;               
             }
             catch (Exception ex)
             {
@@ -539,99 +494,6 @@ namespace service_performance
                     CPUHigh = result.CPUHigh
                 });
             }
-
-            //if (_dto2 != null)
-            //{
-            //    _dto1 = new InfoData
-            //    {
-            //        ServerName = _dto2.ServerName,
-            //        RabbitDate = _dto2.RabbitDate,
-            //        CPUUsagePercent = _dto2.CPUUsagePercent,
-            //        RAMFreeMB = _dto2.RAMFreeMB,
-            //        HDDFreePercent = _dto2.HDDFreePercent,
-            //        HDDFreeMB = _dto2.HDDFreeMB,
-            //        HDDHigh = _dto2.HDDHigh,
-            //        RAMHigh = _dto2.RAMHigh,
-            //        CPUHigh = _dto2.CPUHigh
-            //    };
-            //}
-            //if (_dto3 != null)
-            //{
-            //    _dto2 = new InfoData
-            //    {
-            //        ServerName = _dto3.ServerName,
-            //        RabbitDate = _dto3.RabbitDate,
-            //        CPUUsagePercent = _dto3.CPUUsagePercent,
-            //        RAMFreeMB = _dto3.RAMFreeMB,
-            //        HDDFreePercent = _dto3.HDDFreePercent,
-            //        HDDFreeMB = _dto3.HDDFreeMB,
-            //        HDDHigh = _dto3.HDDHigh,
-            //        RAMHigh = _dto3.RAMHigh,
-            //        CPUHigh = _dto3.CPUHigh
-            //    };
-            //}
-            //if (_dto != null)
-            //{
-            //    _dto3 = new InfoData
-            //    {
-            //        ServerName = _dto.ServerName,
-            //        RabbitDate = _dto.RabbitDate,
-            //        CPUUsagePercent = _dto.CPUUsagePercent,
-            //        RAMFreeMB = _dto.RAMFreeMB,
-            //        HDDFreePercent = _dto.HDDFreePercent,
-            //        HDDFreeMB = _dto.HDDFreeMB,
-            //        HDDHigh = _dto.HDDHigh,
-            //        RAMHigh = _dto.RAMHigh,
-            //        CPUHigh = _dto.CPUHigh
-            //    };
-            //}
-            //if (_dto3 != null && _dto2 != null)
-            //{
-            //    int cpu = 0;
-            //    if (_dto2.CPUUsagePercent > _cpuHighPercent)
-            //        cpu += 2;
-            //    else if (_dto2.CPUUsagePercent > _cpuHighPercent - 5)
-            //        cpu++;
-            //    if (_dto3.CPUUsagePercent > _cpuHighPercent)
-            //        cpu += 2;
-            //    else if (_dto3.CPUUsagePercent > _cpuHighPercent - 5)
-            //        cpu++;
-            //    if (result.CPUUsagePercent > _cpuHighPercent)
-            //        cpu += 2;
-            //    else if (result.CPUUsagePercent > _cpuHighPercent - 5)
-            //        cpu++;
-            //    result.CPUHigh = cpu >= 5;
-
-            //    int ram = 0;
-            //    if (_dto2.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent)
-            //        ram += 2;
-            //    else if (_dto2.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent + 5)
-            //        ram++;
-            //    if (_dto3.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent)
-            //        ram += 2;
-            //    else if (_dto3.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent + 5)
-            //        ram++;
-            //    if (result.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent)
-            //        ram += 2;
-            //    else if (result.RAMFreeMB / (_totalPhysicalMemory / 100) < _ramHighPercent + 5)
-            //        ram++;
-            //    result.RAMHigh = ram >= 5;
-
-            //    int hdd = 0;
-            //    if (_dto2.HDDFreePercent < _hddHighPercent)
-            //        hdd += 2;
-            //    else if (_dto2.HDDFreePercent < _hddHighPercent + 5)
-            //        hdd++;
-            //    if (_dto3.HDDFreePercent < _hddHighPercent)
-            //        hdd += 2;
-            //    else if (_dto3.HDDFreePercent < _hddHighPercent + 5)
-            //        hdd++;
-            //    if (result.HDDFreePercent < _hddHighPercent)
-            //        hdd += 2;
-            //    else if (result.HDDFreePercent < _hddHighPercent + 5)
-            //        hdd++;
-            //    result.HDDHigh = hdd >= 5;
-            //}
 
             return result;
         }

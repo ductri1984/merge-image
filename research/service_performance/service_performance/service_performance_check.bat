@@ -1,8 +1,10 @@
 @echo off
 SETLOCAL EnableExtensions
 
-set EXE1=Logdata.exe
-set EXE2=rabbit_execute.exe
+set EXE1=ConsoleLog.exe
+set EXE2=ConsoleSystemBG.exe
+
+echo check :::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 FOR /F %%x IN ('tasklist /NH /FI "IMAGENAME eq %EXE1%"') DO IF %%x == %EXE1% goto ProcessFound1
 
@@ -22,4 +24,5 @@ echo false
 goto END
 
 :END
+pause
 exit
