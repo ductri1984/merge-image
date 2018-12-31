@@ -23,6 +23,7 @@ namespace service_performance
         private InfoData _dto = default(InfoData);
         private List<InfoData> _lstDTO = new List<InfoData>();
         private int _secondCheck = 5;
+        private double _secondHighCheck = 5;
         private double _totalPhysicalMemory = 0;
         private float _cpuHighPercent = 5;
         private float _ramHighPercent = 5;
@@ -39,9 +40,8 @@ namespace service_performance
         private int _rabbitPort = 0;
         private string _rabbitUserName = string.Empty;
         private string _rabbitPassword = string.Empty;
-        private string _rabbitKey = string.Empty;
-        private string _apiLink = string.Empty;
-        private string _apiParam = string.Empty;
+        private string _rabbitPerformanceDataKey = string.Empty;
+        private string _rabbitPerformanceHighKey = string.Empty;
         private string _batchFileInit = string.Empty;
         private string _batchFileCheck = string.Empty;
         private string _batchFileClear = string.Empty;
@@ -62,15 +62,14 @@ namespace service_performance
                 var rabbitPort = System.Configuration.ConfigurationManager.AppSettings.Get("RabbitPort");
                 var rabbitUserName = System.Configuration.ConfigurationManager.AppSettings.Get("RabbitUserName");
                 var rabbitPassword = System.Configuration.ConfigurationManager.AppSettings.Get("RabbitPassword");
-                var rabbitKey = System.Configuration.ConfigurationManager.AppSettings.Get("RabbitKey");
-
-                var apiLink = System.Configuration.ConfigurationManager.AppSettings.Get("APILink");
-                var apiParam = System.Configuration.ConfigurationManager.AppSettings.Get("APIParam");
+                var rabbitPerformanceDataKey = System.Configuration.ConfigurationManager.AppSettings.Get("RabbitPerformanceDataKey");
+                var rabbitPerformanceHighKey = System.Configuration.ConfigurationManager.AppSettings.Get("RabbitPerformanceHighKey");
 
                 var cpuHighPercent = System.Configuration.ConfigurationManager.AppSettings.Get("CPUHighPercent");
                 var ramHighPercent = System.Configuration.ConfigurationManager.AppSettings.Get("RAMHighPercent");
                 var hddHighPercent = System.Configuration.ConfigurationManager.AppSettings.Get("HDDHighPercent");
                 var sendHigh = System.Configuration.ConfigurationManager.AppSettings.Get("SendHigh");
+                var secondHighCheck = System.Configuration.ConfigurationManager.AppSettings.Get("SecondHighCheck");
                 var secondCheck = System.Configuration.ConfigurationManager.AppSettings.Get("SecondCheck");
                 _batchFileInit = System.Configuration.ConfigurationManager.AppSettings.Get("BatchInit");
                 _batchFileCheck = System.Configuration.ConfigurationManager.AppSettings.Get("BatchCheck");
@@ -80,6 +79,7 @@ namespace service_performance
                 {
                     int i = Convert.ToInt32(timersend);
                     _secondCheck = Convert.ToInt32(secondCheck);
+                    _secondHighCheck = Convert.ToDouble(secondHighCheck);
                     if (i > 0 && _secondCheck > 5)
                     {
                         _lstDTO = new List<InfoData>();
@@ -90,10 +90,8 @@ namespace service_performance
                         _rabbitHost = rabbitHost;
                         _rabbitUserName = rabbitUserName;
                         _rabbitPassword = rabbitPassword;
-                        _rabbitKey = rabbitKey;
-
-                        _apiLink = apiLink;
-                        _apiParam = apiParam;
+                        _rabbitPerformanceDataKey = rabbitPerformanceDataKey;
+                        _rabbitPerformanceHighKey = rabbitPerformanceHighKey;
 
                         _batchClear = false;
                         _batchRun = false;
@@ -140,6 +138,8 @@ namespace service_performance
             }
         }
 
+        private DateTime? _dtHighNext = null;
+
         protected void TimerGet_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             try
@@ -149,6 +149,31 @@ namespace service_performance
                 _dto = GetInfo();
                 if (_islog)
                     LogInfo("TimerGet: " + Newtonsoft.Json.JsonConvert.SerializeObject(_dto));
+
+                if (!string.IsNullOrEmpty(_rabbitHost) && _rabbitPort > 0 && !string.IsNullOrEmpty(_rabbitPerformanceHighKey))
+                {
+                    if (_dto != null && (_dto.CPUHigh || _dto.RAMHigh || _dto.HDDHigh))
+                    {
+                        if (_dtHighNext != null && DateTime.Now.CompareTo(_dtHighNext.Value) > 0)
+                        {
+                            var factory = new ConnectionFactory() { HostName = _rabbitHost, Port = _rabbitPort, UserName = _rabbitUserName, Password = _rabbitPassword };
+                            using (var connection = factory.CreateConnection())
+                            using (var channel = connection.CreateModel())
+                            {
+                                channel.QueueDeclare(queue: _rabbitPerformanceHighKey, durable: false, exclusive: false, autoDelete: false, arguments: null);
+                                string str = Newtonsoft.Json.JsonConvert.SerializeObject(_dto);
+                                channel.BasicPublish("", _rabbitPerformanceHighKey, null, Encoding.Unicode.GetBytes(str));
+
+                                if (_islog)
+                                    LogInfo("TimerGet send rabbit");
+                            }
+
+                            _dtHighNext = DateTime.Now.AddSeconds(_secondHighCheck);
+                        }
+                    }
+                }
+
+
 
                 _timerGet.Enabled = true;
             }
@@ -185,43 +210,25 @@ namespace service_performance
 
                 if (_islog)
                     LogInfo("TimerSend start");
-
-                bool flag = true;
-                if (_isSendHigh)
-                {
-                    flag = _dto.CPUHigh || _dto.RAMHigh || _dto.HDDHigh;
-                }
-
+                
                 if (_islog)
                     LogInfo("TimerSend data: " + Newtonsoft.Json.JsonConvert.SerializeObject(_dto));
 
-                if (flag)
+                if (!string.IsNullOrEmpty(_rabbitHost) && _rabbitPort > 0 && !string.IsNullOrEmpty(_rabbitPerformanceDataKey))
                 {
-                    if (!string.IsNullOrEmpty(_rabbitHost) && !string.IsNullOrEmpty(_rabbitKey) && _rabbitPort > 0)
+                    var factory = new ConnectionFactory() { HostName = _rabbitHost, Port = _rabbitPort, UserName = _rabbitUserName, Password = _rabbitPassword };
+                    using (var connection = factory.CreateConnection())
+                    using (var channel = connection.CreateModel())
                     {
-                        var factory = new ConnectionFactory() { HostName = _rabbitHost, Port = _rabbitPort, UserName = _rabbitUserName, Password = _rabbitPassword };
-                        using (var connection = factory.CreateConnection())
-                        using (var channel = connection.CreateModel())
-                        {
-                            channel.QueueDeclare(queue: _rabbitKey, durable: false, exclusive: false, autoDelete: false, arguments: null);
-                            string str = Newtonsoft.Json.JsonConvert.SerializeObject(_dto);
-                            channel.BasicPublish("", _rabbitKey, null, Encoding.Unicode.GetBytes(str));
-
-                            if (_islog)
-                                LogInfo("TimerSend send rabbit");
-                        }
-                    }
-
-                    if (!string.IsNullOrEmpty(_apiLink))
-                    {
-                        string s = APICall(_dto).Result;
+                        channel.QueueDeclare(queue: _rabbitPerformanceDataKey, durable: false, exclusive: false, autoDelete: false, arguments: null);
+                        string str = Newtonsoft.Json.JsonConvert.SerializeObject(_dto);
+                        channel.BasicPublish("", _rabbitPerformanceDataKey, null, Encoding.Unicode.GetBytes(str));
 
                         if (_islog)
-                            LogInfo("TimerSend send api");
+                            LogInfo("TimerSend send rabbit");
                     }
-
-                    _lstDTO.Clear();
                 }
+                
                 if (!_batchClear)
                 {
                     if (!string.IsNullOrEmpty(_batchFileClear))
@@ -301,7 +308,7 @@ namespace service_performance
 
                         if (_batchLastOutput == "true")
                         {
-                            _batchComplete = true;                            
+                            _batchComplete = true;
                         }
                         else
                             throw new Exception("fail batch file");
@@ -383,7 +390,7 @@ namespace service_performance
                 _timerGet = null;
                 _timerGetReset = null;
                 _timerSend = null;
-                _timerSendReset = null;               
+                _timerSendReset = null;
             }
             catch (Exception ex)
             {
@@ -498,61 +505,61 @@ namespace service_performance
             return result;
         }
 
-        private async Task<string> APICall(InfoData dto)
-        {
-            bool successStatus = false;
-            try
-            {
-                using (var client = new System.Net.Http.HttpClient())
-                {
-                    var result = string.Empty;
+        //private async Task<string> APICall(InfoData dto)
+        //{
+        //    bool successStatus = false;
+        //    try
+        //    {
+        //        using (var client = new System.Net.Http.HttpClient())
+        //        {
+        //            var result = string.Empty;
 
-                    Uri url = new Uri(_apiLink);
-                    client.BaseAddress = url;
-                    client.DefaultRequestHeaders.Accept.Clear();
-                    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                    client.Timeout = TimeSpan.FromHours(1);
-                    string str = Newtonsoft.Json.JsonConvert.SerializeObject(dto);
-                    if (!string.IsNullOrEmpty(_apiParam))
-                        str = "{\"" + _apiParam + "\":" + str + "}";
-                    System.Net.Http.StringContent content = new System.Net.Http.StringContent(str, Encoding.UTF8, "application/json");
-                    var response = await client.PostAsync(url.AbsolutePath, content);
-                    if (response != null && response.IsSuccessStatusCode)
-                    {
-                        successStatus = true;
-                        result = await response.Content.ReadAsStringAsync();
-                    }
-                    else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError || response.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                    {
-                        string s = await response.Content.ReadAsStringAsync();
-                        throw new Exception(s);
-                    }
-                    else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                        throw new Exception("fail Unauthorized");
-                    else
-                        throw new Exception("fail API Host");
-                    return result;
-                }
-            }
-            catch (AggregateException ex)
-            {
-                // a web request timeout 
-                throw new Exception("timeouts: " + successStatus + " : " + Newtonsoft.Json.JsonConvert.SerializeObject(ex));
-            }
-            catch (TaskCanceledException ex)
-            {
-                // a web request timeout 
-                throw new Exception("timeouts: " + successStatus + " : " + Newtonsoft.Json.JsonConvert.SerializeObject(ex));
-            }
-            catch (OperationCanceledException ex)
-            {
-                // because timeouts are still possible
-                throw new Exception("timeouts: " + successStatus + " : " + Newtonsoft.Json.JsonConvert.SerializeObject(ex));
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
+        //            Uri url = new Uri(_apiLink);
+        //            client.BaseAddress = url;
+        //            client.DefaultRequestHeaders.Accept.Clear();
+        //            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        //            client.Timeout = TimeSpan.FromHours(1);
+        //            string str = Newtonsoft.Json.JsonConvert.SerializeObject(dto);
+        //            if (!string.IsNullOrEmpty(_apiParam))
+        //                str = "{\"" + _apiParam + "\":" + str + "}";
+        //            System.Net.Http.StringContent content = new System.Net.Http.StringContent(str, Encoding.UTF8, "application/json");
+        //            var response = await client.PostAsync(url.AbsolutePath, content);
+        //            if (response != null && response.IsSuccessStatusCode)
+        //            {
+        //                successStatus = true;
+        //                result = await response.Content.ReadAsStringAsync();
+        //            }
+        //            else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError || response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        //            {
+        //                string s = await response.Content.ReadAsStringAsync();
+        //                throw new Exception(s);
+        //            }
+        //            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        //                throw new Exception("fail Unauthorized");
+        //            else
+        //                throw new Exception("fail API Host");
+        //            return result;
+        //        }
+        //    }
+        //    catch (AggregateException ex)
+        //    {
+        //        // a web request timeout 
+        //        throw new Exception("timeouts: " + successStatus + " : " + Newtonsoft.Json.JsonConvert.SerializeObject(ex));
+        //    }
+        //    catch (TaskCanceledException ex)
+        //    {
+        //        // a web request timeout 
+        //        throw new Exception("timeouts: " + successStatus + " : " + Newtonsoft.Json.JsonConvert.SerializeObject(ex));
+        //    }
+        //    catch (OperationCanceledException ex)
+        //    {
+        //        // because timeouts are still possible
+        //        throw new Exception("timeouts: " + successStatus + " : " + Newtonsoft.Json.JsonConvert.SerializeObject(ex));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw ex;
+        //    }
+        //}
     }
 }
