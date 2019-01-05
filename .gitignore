@@ -49,6 +49,12 @@ research/service_performance/service_performance/obj/
 research/service_performance/service_performance_setup/Debug/
 research/service_performance/service_performance_setup/Release/
 
+research/WindowsProcesses/.vs
+research/WindowsProcesses/.vs/*
+research/WindowsProcesses/packages/
+research/WindowsProcesses/WindowsProcesses/bin/
+research/WindowsProcesses/WindowsProcesses/obj/
+
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/.vs
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/.vs/*
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/packages/
