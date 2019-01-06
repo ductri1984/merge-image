@@ -170,5 +170,6 @@ namespace WindowsProcesses
         public string CpuUsage;
         public int ID;
         public long OldCpuUsage;
+        public long PrivateMemorySize64;
     }
 }

@@ -106,6 +106,7 @@ namespace service_performance
                         if (_cpuHighPercent < 1 || _ramHighPercent < 1 || _hddHighPercent < 1)
                             throw new Exception("HighPercent fail");
 
+                        HelperProcess.Init();
                         Microsoft.VisualBasic.Devices.ComputerInfo ci = new Microsoft.VisualBasic.Devices.ComputerInfo();
                         _totalPhysicalMemory = (ci.TotalPhysicalMemory / 1024) * 0.001;
                         _cpuUsage = new PerformanceCounter("Processor", "% Processor Time", "_Total");
@@ -210,7 +211,7 @@ namespace service_performance
 
                 if (_islog)
                     LogInfo("TimerSend start");
-                
+
                 if (_islog)
                     LogInfo("TimerSend data: " + Newtonsoft.Json.JsonConvert.SerializeObject(_dto));
 
@@ -228,53 +229,17 @@ namespace service_performance
                             LogInfo("TimerSend send rabbit");
                     }
                 }
-                
-                if (!_batchClear)
+
+                if (!string.IsNullOrEmpty(_batchFileInit) && !string.IsNullOrEmpty(_batchFileCheck) && !string.IsNullOrEmpty(_batchFileClear))
                 {
-                    if (!string.IsNullOrEmpty(_batchFileClear))
+                    if (!_batchClear)
                     {
-                        if (_islog)
-                            LogInfo("batch clear");
-
-                        ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + _batchFileClear);
-                        processInfo.CreateNoWindow = true;
-                        processInfo.UseShellExecute = false;
-                        processInfo.RedirectStandardError = true;
-                        processInfo.RedirectStandardOutput = true;
-
-                        var process = Process.Start(processInfo);
-                        process.OutputDataReceived += (object senderprocess, DataReceivedEventArgs eprocess) =>
+                        if (!string.IsNullOrEmpty(_batchFileClear))
                         {
                             if (_islog)
-                                LogInfo("output>>" + eprocess.Data);
-                        };
-                        process.BeginOutputReadLine();
+                                LogInfo("batch clear");
 
-                        process.ErrorDataReceived += (object senderprocess, DataReceivedEventArgs eprocess) =>
-                        {
-                            if (_islog)
-                                LogInfo("error>>" + eprocess.Data);
-                        };
-                        process.BeginErrorReadLine();
-                        process.Start();
-                        process.Close();
-
-                        _batchClear = true;
-                    }
-                }
-                else if (!_batchComplete)
-                {
-                    if (_islog)
-                        LogInfo("_batchLastOutput: " + _batchLastOutput);
-
-                    if (!_batchRun)
-                    {
-                        if (_islog)
-                            LogInfo("batch init");
-
-                        if (!string.IsNullOrEmpty(_batchFileInit) && !string.IsNullOrEmpty(_batchFileCheck))
-                        {
-                            ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + _batchFileInit);
+                            ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + _batchFileClear);
                             processInfo.CreateNoWindow = true;
                             processInfo.UseShellExecute = false;
                             processInfo.RedirectStandardError = true;
@@ -296,54 +261,93 @@ namespace service_performance
                             process.BeginErrorReadLine();
                             process.Start();
                             process.Close();
-                        }
 
-                        _batchLastOutput = string.Empty;
-                        _batchRun = true;
+                            _batchClear = true;
+                        }
                     }
-                    else if (!string.IsNullOrEmpty(_batchLastOutput))
+                    else if (!_batchComplete)
                     {
                         if (_islog)
-                            LogInfo("batch complete");
+                            LogInfo("_batchLastOutput: " + _batchLastOutput);
 
-                        if (_batchLastOutput == "true")
+                        if (!_batchRun)
                         {
-                            _batchComplete = true;
+                            if (_islog)
+                                LogInfo("batch init");
+
+                            if (!string.IsNullOrEmpty(_batchFileInit) && !string.IsNullOrEmpty(_batchFileCheck))
+                            {
+                                ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + _batchFileInit);
+                                processInfo.CreateNoWindow = true;
+                                processInfo.UseShellExecute = false;
+                                processInfo.RedirectStandardError = true;
+                                processInfo.RedirectStandardOutput = true;
+
+                                var process = Process.Start(processInfo);
+                                process.OutputDataReceived += (object senderprocess, DataReceivedEventArgs eprocess) =>
+                                {
+                                    if (_islog)
+                                        LogInfo("output>>" + eprocess.Data);
+                                };
+                                process.BeginOutputReadLine();
+
+                                process.ErrorDataReceived += (object senderprocess, DataReceivedEventArgs eprocess) =>
+                                {
+                                    if (_islog)
+                                        LogInfo("error>>" + eprocess.Data);
+                                };
+                                process.BeginErrorReadLine();
+                                process.Start();
+                                process.Close();
+                            }
+
+                            _batchLastOutput = string.Empty;
+                            _batchRun = true;
+                        }
+                        else if (!string.IsNullOrEmpty(_batchLastOutput))
+                        {
+                            if (_islog)
+                                LogInfo("batch complete");
+
+                            if (_batchLastOutput == "true")
+                            {
+                                _batchComplete = true;
+                            }
+                            else
+                                throw new Exception("fail batch file");
                         }
                         else
-                            throw new Exception("fail batch file");
-                    }
-                    else
-                    {
-                        if (_islog)
-                            LogInfo("batch check");
-
-                        ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + _batchFileCheck);
-                        processInfo.CreateNoWindow = true;
-                        processInfo.UseShellExecute = false;
-                        processInfo.RedirectStandardError = true;
-                        processInfo.RedirectStandardOutput = true;
-
-                        var process = Process.Start(processInfo);
-                        process.OutputDataReceived += (object senderprocess, DataReceivedEventArgs eprocess) =>
                         {
                             if (_islog)
-                                LogInfo("output>>" + eprocess.Data);
-                            if (_batchLastOutput != "true")
-                                _batchLastOutput = eprocess.Data;
-                            if (!string.IsNullOrEmpty(_batchLastOutput))
-                                _batchLastOutput = _batchLastOutput.ToLower().Trim();
-                        };
-                        process.BeginOutputReadLine();
+                                LogInfo("batch check");
 
-                        process.ErrorDataReceived += (object senderprocess, DataReceivedEventArgs eprocess) =>
-                        {
-                            if (_islog)
-                                LogInfo("error>>" + eprocess.Data);
-                        };
-                        process.BeginErrorReadLine();
-                        process.Start();
-                        process.Close();
+                            ProcessStartInfo processInfo = new ProcessStartInfo("cmd.exe", "/c " + _batchFileCheck);
+                            processInfo.CreateNoWindow = true;
+                            processInfo.UseShellExecute = false;
+                            processInfo.RedirectStandardError = true;
+                            processInfo.RedirectStandardOutput = true;
+
+                            var process = Process.Start(processInfo);
+                            process.OutputDataReceived += (object senderprocess, DataReceivedEventArgs eprocess) =>
+                            {
+                                if (_islog)
+                                    LogInfo("output>>" + eprocess.Data);
+                                if (_batchLastOutput != "true")
+                                    _batchLastOutput = eprocess.Data;
+                                if (!string.IsNullOrEmpty(_batchLastOutput))
+                                    _batchLastOutput = _batchLastOutput.ToLower().Trim();
+                            };
+                            process.BeginOutputReadLine();
+
+                            process.ErrorDataReceived += (object senderprocess, DataReceivedEventArgs eprocess) =>
+                            {
+                                if (_islog)
+                                    LogInfo("error>>" + eprocess.Data);
+                            };
+                            process.BeginErrorReadLine();
+                            process.Start();
+                            process.Close();
+                        }
                     }
                 }
 
@@ -425,7 +429,6 @@ namespace service_performance
         private InfoData GetInfo()
         {
             var result = new InfoData();
-            //var cpuUsage = new PerformanceCounter("Processor", "% Processor Time", "_Total");
             var ramMBUsage = new PerformanceCounter("Memory", "Available MBytes");
             var hddPerUsage = new PerformanceCounter("LogicalDisk", "% Free Space", "_Total", true);
             var hddMBUsage = new PerformanceCounter("LogicalDisk", "Free Megabytes", "_Total", true);
@@ -440,6 +443,7 @@ namespace service_performance
             result.RAMHigh = false;
             result.CPUHigh = false;
             PerformanceCounter.CloseSharedResources();
+            result.ListDetails = HelperProcess.GetProcessTop();
 
             if (_lstDTO != null)
             {
@@ -487,7 +491,7 @@ namespace service_performance
 
                     _lstDTO.RemoveAt(_lstDTO.Count - 1);
                 }
-
+                
                 _lstDTO.Insert(0, new InfoData
                 {
                     ServerName = result.ServerName,
@@ -504,62 +508,5 @@ namespace service_performance
 
             return result;
         }
-
-        //private async Task<string> APICall(InfoData dto)
-        //{
-        //    bool successStatus = false;
-        //    try
-        //    {
-        //        using (var client = new System.Net.Http.HttpClient())
-        //        {
-        //            var result = string.Empty;
-
-        //            Uri url = new Uri(_apiLink);
-        //            client.BaseAddress = url;
-        //            client.DefaultRequestHeaders.Accept.Clear();
-        //            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-        //            client.Timeout = TimeSpan.FromHours(1);
-        //            string str = Newtonsoft.Json.JsonConvert.SerializeObject(dto);
-        //            if (!string.IsNullOrEmpty(_apiParam))
-        //                str = "{\"" + _apiParam + "\":" + str + "}";
-        //            System.Net.Http.StringContent content = new System.Net.Http.StringContent(str, Encoding.UTF8, "application/json");
-        //            var response = await client.PostAsync(url.AbsolutePath, content);
-        //            if (response != null && response.IsSuccessStatusCode)
-        //            {
-        //                successStatus = true;
-        //                result = await response.Content.ReadAsStringAsync();
-        //            }
-        //            else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError || response.StatusCode == System.Net.HttpStatusCode.BadRequest)
-        //            {
-        //                string s = await response.Content.ReadAsStringAsync();
-        //                throw new Exception(s);
-        //            }
-        //            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-        //                throw new Exception("fail Unauthorized");
-        //            else
-        //                throw new Exception("fail API Host");
-        //            return result;
-        //        }
-        //    }
-        //    catch (AggregateException ex)
-        //    {
-        //        // a web request timeout 
-        //        throw new Exception("timeouts: " + successStatus + " : " + Newtonsoft.Json.JsonConvert.SerializeObject(ex));
-        //    }
-        //    catch (TaskCanceledException ex)
-        //    {
-        //        // a web request timeout 
-        //        throw new Exception("timeouts: " + successStatus + " : " + Newtonsoft.Json.JsonConvert.SerializeObject(ex));
-        //    }
-        //    catch (OperationCanceledException ex)
-        //    {
-        //        // because timeouts are still possible
-        //        throw new Exception("timeouts: " + successStatus + " : " + Newtonsoft.Json.JsonConvert.SerializeObject(ex));
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw ex;
-        //    }
-        //}
     }
 }

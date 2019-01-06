@@ -17,5 +17,7 @@ namespace service_performance
         public float CPUUsagePercent { get; set; }
         public bool CPUHigh { get; set; }
         public DateTime? RabbitDate { get; set; }
+
+        public List<ProcessInfo> ListDetails { get; set; }
     }
 }
