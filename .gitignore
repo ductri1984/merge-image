@@ -55,6 +55,12 @@ research/WindowsProcesses/packages/
 research/WindowsProcesses/WindowsProcesses/bin/
 research/WindowsProcesses/WindowsProcesses/obj/
 
+research/webdriver_selenium/.vs
+research/webdriver_selenium/.vs/*
+research/webdriver_selenium/packages/
+research/webdriver_selenium/demo_console/bin/
+research/webdriver_selenium/demo_console/obj/
+
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/.vs
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/.vs/*
 os_folder_movie/5.2.Frontend.And.Testing/folder_movie/packages/

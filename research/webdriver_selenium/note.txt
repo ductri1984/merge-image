@@ -1,0 +1,10 @@
+
+1/ demo_console (Console Application)
+
+Install-Package Newtonsoft.Json -Version 11.0.2
+Install-Package Selenium.WebDriver -Version 3.141.0
+Install-Package Selenium.Support -Version 3.141.0
+Install-Package Selenium.WebDriverBackedSelenium -Version 3.141.0
+
+- Install jdk-8u121-windows-i586
+- Extract webdriver.zip to exe folder
