@@ -779,7 +779,7 @@ namespace GenData
                         body = new PMCollection_RequestBody
                         {
                             mode = "raw",
-                            raw = "{\"action\":{\"OPSContainerID\":"+ itemOrder.OPSContainerID + ",\"ActionType\":\"depotget\"," +
+                            raw = "{\"action\":{\"OPSContainerID\":" + itemOrder.OPSContainerID + ",\"ActionType\":\"depotget\"," +
                                 "\"IsLocationOrder\":false,\"LocationID\":" + itemOrder.DepotID + "}}"
                         },
                         url = new PMCollection_RequestURL
@@ -1660,6 +1660,8 @@ namespace GenData
             });
 
             objCollect.item.Add(itemAdd);
+
+            GenCOTOContainerATD(objCollect, hosttest, strSpace, name + "_atd", itemMaster);
         }
 
         private static void GenCOTOContainerComplete(PMCollection objCollect, string hosttest, string strSpace, string name, CaseMaster itemMaster)
@@ -1715,6 +1717,98 @@ namespace GenData
                     port = port,
                     host = new List<string>() { host },
                     path = new List<string>() { "api", "MON", "MONCON_PopupInfo_COTOContainer_Action" }
+                }
+            };
+            if (!string.IsNullOrEmpty(port))
+            {
+                itemAdd.request.url.port = port;
+            }
+            itemAdd.request.header.Add(new PMCollection_RequestHeader
+            {
+                key = "Content-Type",
+                value = "application/json"
+            });
+            itemAdd.request.header.Add(new PMCollection_RequestHeader
+            {
+                key = "k",
+                value = "{{k}}"
+            });
+            itemAdd.request.header.Add(new PMCollection_RequestHeader
+            {
+                key = "d",
+                value = "{{d}}"
+            });
+            itemAdd.request.header.Add(new PMCollection_RequestHeader
+            {
+                key = "ListActionCode",
+                value = "ActApproved,ActContainer,ActDel,ActEdit,ActExcel,ActOPS,ViewAdmin"
+            });
+
+            objCollect.item.Add(itemAdd);
+
+            GenCOTOContainerATD(objCollect, hosttest, strSpace, name + "_atd", itemMaster);
+        }
+
+        static DateTime ATD = DateTime.Now;
+
+        private static void GenCOTOContainerATD(PMCollection objCollect, string hosttest, string strSpace, string name, CaseMaster itemMaster)
+        {
+            var host = "";
+            var port = "";
+            string[] strs = hosttest.Split(':');
+            if (strs.Length > 1)
+            {
+                host = strs[1].Replace("//", "");
+            }
+            if (strs.Length > 2)
+            {
+                port = strs[2];
+            }
+
+            var itemAdd = new PMCollection_Item();
+            itemAdd.name = name;
+            itemAdd.response = new List<string>();
+            itemAdd._event = new List<PMCollection_Event>();
+
+            var itemEvent = new PMCollection_Event
+            {
+                listen = "test",
+                script = new PMCollection_EventScript
+                {
+                    id = Guid.NewGuid().ToString(),
+                    type = "text/javascript",
+                    exec = new List<string>()
+                }
+            };
+            itemEvent.script.exec = new List<string>()
+            {
+                "pm.test(\"" + name + "\", function () {",
+                strSpace + "pm.expect(pm.response.code).to.be.oneOf([200,204]);",
+                "});"
+            };
+            itemAdd._event.Add(itemEvent);
+
+            ATD = ATD.AddHours(1);
+            itemAdd.request = new PMCollection_Request
+            {
+                method = "POST",
+                header = new List<PMCollection_RequestHeader>(),
+                body = new PMCollection_RequestBody
+                {
+                    mode = "raw",
+                    raw = "{\"action\":{\"ActionType\":\"ATD\",\"COTOMasterID\":" + itemMaster.ID + "," +
+                        "\"ETD\":\"" + ATD.ToString("yyyy-MM-dd HH:mm:ss") + "\"," +
+                        "\"ETA\":\"" + ATD.AddHours(0.5).ToString("yyyy-MM-dd HH:mm:ss") + "\"," +
+                        "\"ATD\":\"" + ATD.ToString("yyyy-MM-dd HH:mm:ss") + "\","+
+                        "\"ATA\":\"" + ATD.AddHours(0.5).ToString("yyyy-MM-dd HH:mm:ss") + "\"}}"
+                },
+                url = new PMCollection_RequestURL
+                {
+                    raw = hosttest + "/api/MON/MON_Container_COM_PopupInfo_Master_Action",
+                    protocol = "http",
+                    port = port,
+                    host = new List<string>() { host },
+                    path = new List<string>() { "api", "MON", "MON_Container_COM_PopupInfo_Master_Action" }
                 }
             };
             if (!string.IsNullOrEmpty(port))
