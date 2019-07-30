@@ -200,19 +200,38 @@ namespace database_compare
                             else
                             {
                                 string strSource = string.Empty;
+                                string strSourceType = string.Empty;
+                                string strSourceNull = string.Empty;
                                 foreach (DataRow detail in _dtSourceColumns.Select("id=" + itemSource["id"]))
                                 {
                                     strSource += detail["name"] + ":" + detail["xtype"] + ":" + detail["length"] + ":" + detail["isnullable"] + ";";
+                                    strSourceType += detail["xtype"] + ";";
+                                    strSourceNull += detail["isnullable"] + ";";
                                 }
                                 string strTarget = string.Empty;
+                                string strTargetType = string.Empty;
+                                string strTargetNull = string.Empty;
                                 foreach (DataRow detail in _dtTargetColumns.Select("id=" + itemTarget["id"]))
                                 {
                                     strTarget += detail["name"] + ":" + detail["xtype"] + ":" + detail["length"] + ":" + detail["isnullable"] + ";";
+                                    strTargetType += detail["xtype"] + ";";
+                                    strTargetNull += detail["isnullable"] + ";";
                                 }
                                 if (strSource != strTarget)
                                 {
                                     flag = false;
-                                    note = "Source has difference columns with target";
+                                    if (strSourceType != strTargetType)
+                                    {
+                                        note = "Source has difference columns type with target";
+                                    }
+                                    else if (strSourceNull != strTargetNull)
+                                    {
+                                        note = "Source has difference columns null with target";
+                                    }
+                                    else
+                                    {
+                                        note = "Source has difference columns with target";
+                                    }
                                 }
                                 else
                                 {
