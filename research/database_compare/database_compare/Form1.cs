@@ -29,14 +29,14 @@ namespace database_compare
         {
             try
             {
-                txtSourceServer.Text = "125.212.248.161";
-                txtSourceDatabase.Text = "tms_dev";
-                txtSourceUser.Text = "tms_dev";
-                txtSourcePassword.Text = "dev123";
-                txtTargetServer.Text = "192.168.1.252";
-                txtTargetDatabase.Text = "tms_dev";
-                txtTargetUser.Text = "tms_dev";
-                txtTargetPassword.Text = "dev123";
+                txtSourceServer.Text = "dev.ooc.vn,15000";
+                txtSourceDatabase.Text = "oocempty.setting";
+                txtSourceUser.Text = "sa";
+                txtSourcePassword.Text = "@QWE123$%^";
+                txtTargetServer.Text = "dev.ooc.vn,15000";
+                txtTargetDatabase.Text = "oocdev.setting";
+                txtTargetUser.Text = "sa";
+                txtTargetPassword.Text = "@QWE123$%^";
 
                 _dtSource = new DataTable();
                 _dtSource.Columns.Add("IsSuccess", typeof(bool));
@@ -121,7 +121,7 @@ namespace database_compare
                 else
                 {
                     string sqlTable = "SELECT name,id FROM sysobjects where xtype='U'";
-                    string sqlColumns = "SELECT cols.name,cols.id,cols.xtype,cols.[length],isnullable FROM syscolumns cols inner join sysobjects tbl ON cols.id=tbl.id where tbl.xtype='U' order by cols.name";
+                    string sqlColumns = "SELECT cols.name,cols.id,cols.xtype,cols.[length],isnullable,colorder FROM syscolumns cols inner join sysobjects tbl ON cols.id=tbl.id where tbl.xtype='U' order by cols.name";
                     //56:int,231:nvarchar,62:float,60:money,61:date,99:ntext,104:bit,127:bigint
                     string sqlForeign = "SELECT K_Table = FK.TABLE_NAME, FK_Column = CU.COLUMN_NAME,PK_Table = PK.TABLE_NAME,PK_Column = PT.COLUMN_NAME,Constraint_Name = C.CONSTRAINT_NAME " +
                         "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS C INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS FK " +
@@ -202,11 +202,13 @@ namespace database_compare
                                 string strSource = string.Empty;
                                 string strSourceType = string.Empty;
                                 string strSourceNull = string.Empty;
+                                string strSourceSort = string.Empty;
                                 foreach (DataRow detail in _dtSourceColumns.Select("id=" + itemSource["id"]))
                                 {
                                     strSource += detail["name"] + ":" + detail["xtype"] + ":" + detail["length"] + ":" + detail["isnullable"] + ";";
                                     strSourceType += detail["xtype"] + ";";
                                     strSourceNull += detail["isnullable"] + ";";
+
                                 }
                                 string strTarget = string.Empty;
                                 string strTargetType = string.Empty;
@@ -266,11 +268,73 @@ namespace database_compare
 
                 gvSource.DataSource = _dtSource;
                 gvTarget.DataSource = _dtTarget;
+
+                //GetIDtoLong();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+
+        private void GetIDtoLong()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (DataRow itemSource in _dtSource.Rows)
+            {
+                //foreach (DataRow detail in _dtSourceColumns.Select("id=" + itemSource["id"]))
+                //{
+                //    if (detail["name"] == null || detail["name"] != DBNull.Value)
+                //    {
+                //        string str = detail["name"].ToString();
+                //        if (str == "ID" || str.StartsWith("ID"))
+                //        {
+                //            if(str == "ID")
+                //            {
+                //                sb.AppendLine($"ALTER TABLE [dbo].[{itemSource["TableName"]}] DROP CONSTRAINT [PK_dbo.{itemSource["TableName"]}]");
+                //                sb.AppendLine("GO");
+                //            }
+
+                //            if (detail["isnullable"].ToString() == "0")
+                //            {
+                //                sb.AppendLine($"ALTER TABLE [dbo].[{itemSource["TableName"]}] ALTER COLUMN [{str}] bigint NOT NULL");
+                //            }
+                //            else
+                //            {
+                //                sb.AppendLine($"ALTER TABLE [dbo].[{itemSource["TableName"]}] ALTER COLUMN [{str}] bigint NULL");
+                //            }
+                //            sb.AppendLine("GO");
+
+                //            if (str == "ID")
+                //            {
+                //                sb.AppendLine($"ALTER TABLE [dbo].[{itemSource["TableName"]}] ADD CONSTRAINT [PK_dbo.{itemSource["TableName"]}] PRIMARY KEY([ID])");
+                //                sb.AppendLine("GO");
+                //            }
+                //        }
+                //    }
+                //}
+
+                if (itemSource["TableName"].ToString() != "__MigrationHistory" && itemSource["IsSuccess"].ToString() != "True")
+                {
+                    //sb.AppendLine($"ALTER TABLE [dbo].[{itemSource["TableName"]}] ADD [CreatedFrom] nvarchar(2000) NULL");
+                    //sb.AppendLine("GO");
+                    //sb.AppendLine($"ALTER TABLE [dbo].[{itemSource["TableName"]}] ADD [ModifiedFrom] nvarchar(2000) NULL");
+                    //sb.AppendLine("GO");
+
+                    sb.AppendLine($"ALTER TABLE [dbo].[{itemSource["TableName"]}] ADD [Remark] NVARCHAR(max) NULL");
+                    sb.AppendLine("GO");
+                    sb.AppendLine($"IF NOT EXISTS (SELECT 'Y' FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{itemSource["TableName"]}' AND COLUMN_NAME = 'Sort')");
+                    sb.AppendLine("BEGIN");
+                    sb.AppendLine($"ALTER TABLE [dbo].[{itemSource["TableName"]}] ADD [Sort] int NULL");
+                    sb.AppendLine("END");
+                    sb.AppendLine("GO");
+                    sb.AppendLine($"UPDATE [dbo].[{itemSource["TableName"]}] set [Sort] = 1");
+                    sb.AppendLine("GO");
+                    sb.AppendLine($"ALTER TABLE [dbo].[{itemSource["TableName"]}] ALTER COLUMN [Sort] int NOT NULL");
+                    sb.AppendLine("GO");
+                }
+            }
+            string strdata = sb.ToString();
         }
     }
 }
