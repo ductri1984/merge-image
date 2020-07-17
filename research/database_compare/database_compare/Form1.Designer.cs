@@ -59,6 +59,7 @@
             this.gvSource = new System.Windows.Forms.DataGridView();
             this.txtSourceServer = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.btnGenScript = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.gvTarget)).BeginInit();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gvSource)).BeginInit();
@@ -354,11 +355,22 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Source";
             // 
+            // btnGenScript
+            // 
+            this.btnGenScript.Location = new System.Drawing.Point(91, 17);
+            this.btnGenScript.Name = "btnGenScript";
+            this.btnGenScript.Size = new System.Drawing.Size(75, 23);
+            this.btnGenScript.TabIndex = 8;
+            this.btnGenScript.Text = "Gen script";
+            this.btnGenScript.UseVisualStyleBackColor = true;
+            this.btnGenScript.Click += new System.EventHandler(this.btnGenScript_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(792, 473);
+            this.Controls.Add(this.btnGenScript);
             this.Controls.Add(this.btnLoad);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -411,6 +423,7 @@
         private System.Windows.Forms.DataGridView gvSource;
         private System.Windows.Forms.TextBox txtSourceServer;
         private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Button btnGenScript;
     }
 }
 

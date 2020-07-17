@@ -46,6 +46,7 @@ namespace database_compare
                 _dtSource.Columns.Add("Foreign", typeof(int));
                 _dtSource.Columns.Add("ForeignText", typeof(string));
                 _dtSource.Columns.Add("id", typeof(int));
+                _dtSource.Columns.Add("IsIdentity", typeof(bool));
                 _dtSourceColumns = new DataTable();
                 _dtSourceForeign = new DataTable();
                 _dtTarget = _dtSource.Clone();
@@ -121,8 +122,9 @@ namespace database_compare
                 else
                 {
                     string sqlTable = "SELECT name,id FROM sysobjects where xtype='U'";
-                    string sqlColumns = "SELECT cols.name,cols.id,cols.xtype,cols.[length],isnullable,colorder FROM syscolumns cols inner join sysobjects tbl ON cols.id=tbl.id where tbl.xtype='U' order by cols.name";
-                    //56:int,231:nvarchar,62:float,60:money,61:date,99:ntext,104:bit,127:bigint
+                    //cols.[status]=128 and cols.colstat=1 and cols.isnullable=0 -> identity
+                    string sqlColumns = "SELECT cols.name,cols.id,cols.xtype,cols.[length],isnullable,colorder,cols.[status],cols.colstat FROM syscolumns cols inner join sysobjects tbl ON cols.id=tbl.id where tbl.xtype='U' order by colorder";
+                    //cols.xtype = 56:int,231:nvarchar,62:float,60:money,61:datetime,99:ntext,104:bit,127:bigint
                     string sqlForeign = "SELECT K_Table = FK.TABLE_NAME, FK_Column = CU.COLUMN_NAME,PK_Table = PK.TABLE_NAME,PK_Column = PT.COLUMN_NAME,Constraint_Name = C.CONSTRAINT_NAME " +
                         "FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS C INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS FK " +
                         "ON C.CONSTRAINT_NAME = FK.CONSTRAINT_NAME INNER JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS PK " +
@@ -152,6 +154,8 @@ namespace database_compare
                         row["IsSuccess"] = true;
                         row["Columns"] = _dtSourceColumns.Select("id=" + row["id"]).Length;
                         row["Foreign"] = _dtSourceForeign.Select("PK_Table='" + row["TableName"] + "'").Length;
+                        row["IsIdentity"] = _dtSourceColumns.Select("id=" + row["id"] + " and status=128 and colstat=1 and isnullable=0").Length > 0;
+
                         _dtSource.Rows.Add(row);
                     }
                     cnnSource.Close();
@@ -175,6 +179,8 @@ namespace database_compare
                         row["IsSuccess"] = true;
                         row["Columns"] = _dtTargetColumns.Select("id=" + row["id"]).Length;
                         row["Foreign"] = _dtTargetForeign.Select("PK_Table='" + row["TableName"] + "'").Length;
+                        row["IsIdentity"] = _dtTargetColumns.Select("id=" + row["id"] + " and status=128 and colstat=1 and isnullable=0").Length > 0;
+
                         _dtTarget.Rows.Add(row);
                     }
                     cnnTarget.Close();
@@ -336,5 +342,200 @@ namespace database_compare
             }
             string strdata = sb.ToString();
         }
+
+        private void btnGenScript_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_dtSource.Rows.Count > 0 && _dtTarget.Rows.Count > 0)
+                {
+                    string strConnect = "Data Source=" + txtSourceServer.Text + ";Initial Catalog=" + txtSourceDatabase.Text + ";uid=" + txtSourceUser.Text + ";pwd=" +
+                    txtSourcePassword.Text;
+                    SqlConnection cnnSource = new SqlConnection(strConnect);
+                    try
+                    {
+                        cnnSource.Open();
+                        cnnSource.Close();
+                    }
+                    catch
+                    {
+                        throw new Exception("Can't connect source database");
+                    }
+                    int totalRow = 0;
+                    int totalFile = 1;
+                    string strFolder = btnGenScript_Click_GenFolder();
+                    StringBuilder sb = new StringBuilder();
+                    foreach (DataRow itemSource in _dtSource.Select("IsSuccess=1"))
+                    {
+                        #region gen data
+                        var drs = _dtTarget.Select("TableName='" + itemSource["TableName"] + "'");
+                        if (drs.Length > 0 && Convert.ToBoolean(drs[0]["IsSuccess"]))
+                        {
+                            DataRow itemTarget = drs[0];
+                            DataRow[] colsSource = _dtSourceColumns.Select("id=" + itemSource["id"]);
+
+                            var sqlTable = "select * from dbo." + itemSource["TableName"];
+                            var dtData = new DataTable();
+                            var cmd = new SqlCommand();
+                            cmd.Connection = cnnSource;
+                            cmd.CommandText = sqlTable;
+                            var adt = new SqlDataAdapter(cmd);
+                            adt.Fill(dtData);
+
+                            if (dtData.Rows.Count > 0 && colsSource.Length > 0)
+                            {
+                                Dictionary<string, int> dicCol = new Dictionary<string, int>();
+                                string strDataStart = "INSERT [dbo].[" + itemSource["TableName"] + "] (";
+                                foreach (DataRow itemCol in colsSource)
+                                {
+                                    string colName = itemCol["name"].ToString();
+                                    int colType = Convert.ToInt32(itemCol["xtype"]);
+
+                                    if (!dicCol.ContainsKey(colName))
+                                    {
+                                        dicCol.Add(colName, colType);
+                                        strDataStart += "[" + colName + "],";
+                                    }
+                                }
+                                strDataStart = strDataStart.Substring(0, strDataStart.Length - 1) + ") VALUES(";
+
+                                bool isIdentity = Convert.ToBoolean(itemTarget["IsIdentity"]);
+                                if (isIdentity)
+                                {
+                                    sb.AppendLine("SET IDENTITY_INSERT [dbo].[" + itemSource["TableName"] + "] ON");
+                                    sb.AppendLine("GO");
+                                }
+
+                                foreach (DataRow itemData in dtData.Rows)
+                                {
+                                    string strData = string.Empty;
+                                    foreach (var itemCol in dicCol)
+                                    {
+                                        var obj = itemData[itemCol.Key];
+                                        if (obj == DBNull.Value || obj == null)
+                                        {
+                                            strData += ",NULL";
+                                        }
+                                        else
+                                        {
+                                            #region tyle
+                                            //34 image
+                                            //35 text
+                                            //36 uniqueidentifier
+                                            //48 tinyint
+                                            //52 smallint
+                                            //56 int
+                                            //58 smalldatetime
+                                            //59 real
+                                            //60 money
+                                            //61 datetime
+                                            //62 float
+                                            //98 sql_variant
+                                            //99 ntext
+                                            //104 bit
+                                            //106 decimal
+                                            //108 numeric
+                                            //122 smallmoney
+                                            //127 bigint
+                                            //165 varbinary
+                                            //167 varchar
+                                            //173 binary
+                                            //175 char
+                                            //189 timestamp
+                                            //231 nvarchar
+                                            //231 sysname
+                                            //239 nchar
+                                            //241 xml
+                                            #endregion
+                                            switch (itemCol.Value)
+                                            {
+                                                //string
+                                                case 35:
+                                                case 167:
+                                                case 231:
+                                                case 239:
+                                                    string str = obj.ToString();
+                                                    str = str.Replace("'", "''");
+                                                    strData += ",N'" + str + "'";
+                                                    break;
+                                                //datetime
+                                                case 61:
+                                                    strData += ",'" + Convert.ToDateTime(obj).ToString("yyyy-MM-dd HH:mm:ss.fff") + "'";
+                                                    break;
+                                                default:
+                                                    strData += "," + obj.ToString();
+                                                    break;
+                                            }
+                                        }
+                                    }
+                                    if (!string.IsNullOrEmpty(strData))
+                                        strData = strData.Substring(1);
+                                    strData = strDataStart + strData + ")";
+                                    sb.AppendLine(strData);
+                                    sb.AppendLine("GO");
+                                    totalRow++;
+                                }
+
+                                if (isIdentity)
+                                {
+                                    sb.AppendLine("SET IDENTITY_INSERT [dbo].[" + itemSource["TableName"] + "] OFF");
+                                    sb.AppendLine("GO");
+                                }
+                            }
+                        }
+                        #endregion
+
+                        #region gen file
+                        if (totalRow > 200000)
+                        {
+                            btnGenScript_Click_GenFile(strFolder, sb, ref totalFile);
+                            totalRow = 0;
+                        }
+                        #endregion
+                    }
+                    if (totalRow > 0)
+                    {
+                        btnGenScript_Click_GenFile(strFolder, sb, ref totalFile);
+                    }
+
+                    System.Diagnostics.Process.Start("explorer.exe", strFolder);
+                    //sqlcmd /S DESKTOP-KT6Q0LA\MSSQLSERVER01 /d ooc.kpi2 -E -i"%%G" -f 65001
+
+                }
+                else
+                    MessageBox.Show("Not found source and target");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private string btnGenScript_Click_GenFolder()
+        {
+            string str = System.IO.Path.Combine(Application.StartupPath, DateTime.Now.ToString("yyyyMMddHH"));
+            if (System.IO.Directory.Exists(str))
+            {
+                System.IO.Directory.Delete(str, true);
+            }
+            System.IO.Directory.CreateDirectory(str);
+            return str;
+        }
+
+        private void btnGenScript_Click_GenFile(string strFolder, StringBuilder sb, ref int totalFile)
+        {
+            string str = System.IO.Path.Combine(strFolder, "file" + totalFile + ".sql");
+            if (System.IO.File.Exists(str))
+            {
+                totalFile++;
+                str = System.IO.Path.Combine(strFolder, "file" + totalFile + ".sql");
+                if (System.IO.File.Exists(str))
+                    throw new Exception("exists file temp");
+            }
+            System.IO.File.AppendAllText(str, sb.ToString(), Encoding.Unicode);
+            totalFile++;
+        }
+
+
     }
 }
