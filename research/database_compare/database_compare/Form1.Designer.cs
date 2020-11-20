@@ -60,6 +60,7 @@
             this.txtSourceServer = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.btnGenScript = new System.Windows.Forms.Button();
+            this.btnScriptColumn = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.gvTarget)).BeginInit();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.gvSource)).BeginInit();
@@ -365,11 +366,22 @@
             this.btnGenScript.UseVisualStyleBackColor = true;
             this.btnGenScript.Click += new System.EventHandler(this.btnGenScript_Click);
             // 
+            // btnScriptColumn
+            // 
+            this.btnScriptColumn.Location = new System.Drawing.Point(172, 17);
+            this.btnScriptColumn.Name = "btnScriptColumn";
+            this.btnScriptColumn.Size = new System.Drawing.Size(104, 23);
+            this.btnScriptColumn.TabIndex = 9;
+            this.btnScriptColumn.Text = "Script column";
+            this.btnScriptColumn.UseVisualStyleBackColor = true;
+            this.btnScriptColumn.Click += new System.EventHandler(this.btnScriptColumn_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(792, 473);
+            this.Controls.Add(this.btnScriptColumn);
             this.Controls.Add(this.btnGenScript);
             this.Controls.Add(this.btnLoad);
             this.Controls.Add(this.groupBox2);
@@ -424,6 +436,7 @@
         private System.Windows.Forms.TextBox txtSourceServer;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Button btnGenScript;
+        private System.Windows.Forms.Button btnScriptColumn;
     }
 }
 

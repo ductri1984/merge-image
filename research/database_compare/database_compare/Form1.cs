@@ -30,11 +30,13 @@ namespace database_compare
             try
             {
                 txtSourceServer.Text = "dev.ooc.vn,15000";
-                txtSourceDatabase.Text = "oocempty.setting";
+                //txtSourceDatabase.Text = "oocempty.setting";
+                txtSourceDatabase.Text = "oocdata.policy";
                 txtSourceUser.Text = "sa";
                 txtSourcePassword.Text = "@QWE123$%^";
                 txtTargetServer.Text = "dev.ooc.vn,15000";
-                txtTargetDatabase.Text = "oocdev.setting";
+                //txtTargetDatabase.Text = "oocdev.policy";
+                txtTargetDatabase.Text = "oocdev.policy";
                 txtTargetUser.Text = "sa";
                 txtTargetPassword.Text = "@QWE123$%^";
 
@@ -365,16 +367,19 @@ namespace database_compare
                     int totalFile = 1;
                     string strFolder = btnGenScript_Click_GenFolder();
                     StringBuilder sb = new StringBuilder();
+                    List<string> lstTable = new List<string>();
+                    //foreach (DataRow itemSource in _dtSource.Select("IsSuccess=1 and (TableName='tbl_BSCKPI_KetQuaThucHienChiTieu_CaNhan_Thang' or TableName='tbl_BSCKPI_KetQuaThucHienChiTieu_CaNhan_Quy' or TableName='tbl_BSCKPI_KetQuaThucHienChiTieu_CaNhan_NuaNam' or TableName='tbl_BSCKPI_KetQuaThucHienChiTieu_CaNhan_Nam')"))
                     foreach (DataRow itemSource in _dtSource.Select("IsSuccess=1"))
                     {
                         #region gen data
-                        var drs = _dtTarget.Select("TableName='" + itemSource["TableName"] + "'");
-                        if (drs.Length > 0 && Convert.ToBoolean(drs[0]["IsSuccess"]))
+                        string strSourceTableName = itemSource["TableName"].ToString();
+                        var drs = _dtTarget.Select("TableName='" + strSourceTableName + "'");
+                        if (drs.Length > 0 && Convert.ToBoolean(drs[0]["IsSuccess"]) && !lstTable.Contains(strSourceTableName))
                         {
                             DataRow itemTarget = drs[0];
                             DataRow[] colsSource = _dtSourceColumns.Select("id=" + itemSource["id"]);
 
-                            var sqlTable = "select * from dbo." + itemSource["TableName"];
+                            var sqlTable = "select * from dbo." + strSourceTableName;
                             var dtData = new DataTable();
                             var cmd = new SqlCommand();
                             cmd.Connection = cnnSource;
@@ -382,10 +387,12 @@ namespace database_compare
                             var adt = new SqlDataAdapter(cmd);
                             adt.Fill(dtData);
 
+                            lstTable.Add(strSourceTableName);
+
                             if (dtData.Rows.Count > 0 && colsSource.Length > 0)
                             {
                                 Dictionary<string, int> dicCol = new Dictionary<string, int>();
-                                string strDataStart = "INSERT [dbo].[" + itemSource["TableName"] + "] (";
+                                string strDataStart = "INSERT [dbo].[" + strSourceTableName + "] (";
                                 foreach (DataRow itemCol in colsSource)
                                 {
                                     string colName = itemCol["name"].ToString();
@@ -402,9 +409,11 @@ namespace database_compare
                                 bool isIdentity = Convert.ToBoolean(itemTarget["IsIdentity"]);
                                 if (isIdentity)
                                 {
-                                    sb.AppendLine("SET IDENTITY_INSERT [dbo].[" + itemSource["TableName"] + "] ON");
+                                    sb.AppendLine("SET IDENTITY_INSERT [dbo].[" + strSourceTableName + "] ON");
                                     sb.AppendLine("GO");
                                 }
+
+                                List<string> lstid = new List<string>();
 
                                 foreach (DataRow itemData in dtData.Rows)
                                 {
@@ -462,9 +471,32 @@ namespace database_compare
                                                 case 61:
                                                     strData += ",'" + Convert.ToDateTime(obj).ToString("yyyy-MM-dd HH:mm:ss.fff") + "'";
                                                     break;
+                                                //bit
+                                                case 104:
+                                                    if (Convert.ToBoolean(obj))
+                                                    {
+                                                        strData += ",1";
+                                                    }
+                                                    else
+                                                    {
+                                                        strData += ",0";
+                                                    }
+                                                    break;
                                                 default:
                                                     strData += "," + obj.ToString();
                                                     break;
+                                            }
+
+                                            if (itemCol.Key == "ID")
+                                            {
+                                                if (!lstid.Contains(obj.ToString()))
+                                                {
+                                                    lstid.Add(obj.ToString());
+                                                }
+                                                else
+                                                {
+
+                                                }
                                             }
                                         }
                                     }
@@ -478,7 +510,7 @@ namespace database_compare
 
                                 if (isIdentity)
                                 {
-                                    sb.AppendLine("SET IDENTITY_INSERT [dbo].[" + itemSource["TableName"] + "] OFF");
+                                    sb.AppendLine("SET IDENTITY_INSERT [dbo].[" + strSourceTableName + "] OFF");
                                     sb.AppendLine("GO");
                                 }
                             }
@@ -488,14 +520,14 @@ namespace database_compare
                         #region gen file
                         if (totalRow > 200000)
                         {
-                            btnGenScript_Click_GenFile(strFolder, sb, ref totalFile);
+                            btnGenScript_Click_GenFile(strFolder, ref sb, ref totalFile);
                             totalRow = 0;
                         }
                         #endregion
                     }
                     if (totalRow > 0)
                     {
-                        btnGenScript_Click_GenFile(strFolder, sb, ref totalFile);
+                        btnGenScript_Click_GenFile(strFolder, ref sb, ref totalFile);
                     }
 
                     System.Diagnostics.Process.Start("explorer.exe", strFolder);
@@ -522,7 +554,7 @@ namespace database_compare
             return str;
         }
 
-        private void btnGenScript_Click_GenFile(string strFolder, StringBuilder sb, ref int totalFile)
+        private void btnGenScript_Click_GenFile(string strFolder, ref StringBuilder sb, ref int totalFile)
         {
             string str = System.IO.Path.Combine(strFolder, "file" + totalFile + ".sql");
             if (System.IO.File.Exists(str))
@@ -533,9 +565,134 @@ namespace database_compare
                     throw new Exception("exists file temp");
             }
             System.IO.File.AppendAllText(str, sb.ToString(), Encoding.Unicode);
+            sb.Clear();
             totalFile++;
         }
 
+        private void btnScriptColumn_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_dtSource.Rows.Count > 0 && _dtTarget.Rows.Count > 0)
+                {
+                    string strConnect = "Data Source=" + txtSourceServer.Text + ";Initial Catalog=" + txtSourceDatabase.Text + ";uid=" + txtSourceUser.Text + ";pwd=" +
+                    txtSourcePassword.Text;
+                    SqlConnection cnnSource = new SqlConnection(strConnect);
+                    try
+                    {
+                        cnnSource.Open();
+                        cnnSource.Close();
+                    }
+                    catch
+                    {
+                        throw new Exception("Can't connect source database");
+                    }
+                    StringBuilder sb = new StringBuilder();
 
+                    if (gvSource.SelectedRows != null && gvSource.SelectedRows.Count > 0)
+                    {
+                        var drv = gvSource.SelectedRows[0].DataBoundItem as DataRowView;
+
+                        string tablename = drv["TableName"].ToString();
+                        bool isidentity = drv["IsIdentity"].ToString().ToLower() == "true";
+
+                        DataRow[] colsSource = _dtSourceColumns.Select("id=" + drv["id"]);
+                        int daura = 9680; //-5 or -10
+                        int dauraConnect = 9680; //-5 or -10
+                        int dauvao = 951; //-1
+                        int dauvaoConnect = 10951;//-1
+                        int dauraCol = 490401; //-200 or -300
+                        int dauvaoCol = 48461; //-30 or -50
+
+                        string strCommandInsert = $"INSERT INTO [dbo].[{tablename}]([ID]";
+                        string strCommandInsertParam = $"VALUES(@ID";
+                        string strCommandUpdate = string.Empty;
+
+                        sb.AppendLine("SET IDENTITY_INSERT [dbo].[tbl_EDI_CauHinhKetNoi] ON");
+                        sb.AppendLine($"INSERT [dbo].[tbl_EDI_CauHinhKetNoi]([ID], [IDKhachHang], [Code], [Name], [LoaiDuLieu], [CachKetNoi], [Server], [Port], [Username], [Password], [Command], [IsDisabled], [IsDeleted], [Sort], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate], [Database]) VALUES({dauvaoConnect}, 1, N'{tablename}', N'{tablename}', 1, 1, N'', 0, N'', N'', N'select * from {tablename} where ModifiedDate>=@NgayCuoiLayDuLieu', 0, 0, 1, N'admin', getdate(), N'admin', getdate(), 'oocdata.policy')");
+                        sb.AppendLine($"INSERT [dbo].[tbl_EDI_CauHinhKetNoi]([ID], [IDKhachHang], [Code], [Name], [LoaiDuLieu], [CachKetNoi], [Server], [Port], [Username], [Password], [Command], [IsDisabled], [IsDeleted], [Sort], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate], [Database]) VALUES({dauraConnect}, 1, N'{tablename}', N'{tablename}', 1, 1, N'', 0, N'', N'', N'{tablename}', 0, 0, 1, N'admin', getdate(), N'admin', getdate(), 'oocdata.cb')");
+                        sb.AppendLine("SET IDENTITY_INSERT [dbo].[tbl_EDI_CauHinhKetNoi] OFF");
+                        sb.AppendLine("GO");
+                        sb.AppendLine("SET IDENTITY_INSERT [dbo].[tbl_EDI_DauVao] ON");
+                        sb.AppendLine($"INSERT [dbo].[tbl_EDI_DauVao] ([ID], [IDKhachHang], [IDCauHinhKetNoi], [ThoiGianLayDuLieu], [HasParam], [IsDisabled], [IsDeleted], [Sort], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate], [Code], [Name], [TinhTrang]) VALUES ({dauvao}, 1, {dauvaoConnect}, 5, 0, 0, 0, 0, N'admin', getdate(), N'admin', getdate(), N'{tablename}', N'{tablename}', 2)");
+                        sb.AppendLine("SET IDENTITY_INSERT [dbo].[tbl_EDI_DauVao] OFF");
+                        sb.AppendLine("GO");
+                        sb.AppendLine("SET IDENTITY_INSERT [dbo].[tbl_EDI_DauRa] ON");
+                        sb.AppendLine($"INSERT [dbo].[tbl_EDI_DauRa] ([ID], [IDKhachHang], [IDCauHinhKetNoi], [GioiHanSLDuLieuGui], [Code], [Name], [HasParam], [IsDisabled], [IsDeleted], [Sort], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate], [TinhTrang]) VALUES ({daura}, 1, {dauraConnect}, 10, N'{tablename}', N'{tablename}', 0, 0, 0, 0, N'admin', getdate(), N'admin', getdate(), 0)");
+                        sb.AppendLine("SET IDENTITY_INSERT [dbo].[tbl_EDI_DauRa] OFF");
+                        sb.AppendLine("GO");
+                        sb.AppendLine("SET IDENTITY_INSERT [dbo].[tbl_EDI_ThietLapLienKet] ON");
+                        sb.AppendLine($"INSERT [dbo].[tbl_EDI_ThietLapLienKet] ([ID], [IDDauVao], [IDDauRa], [GioiHanSLDuLieuGui], [IsDisabled], [IsDeleted], [Sort], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate], [Code], [Name]) VALUES ({daura}, {dauvao}, {daura}, 10, 0, 0, 0, N'admin', getdate(), N'admin', getdate(), N'{tablename}', N'{tablename}')");
+                        sb.AppendLine("SET IDENTITY_INSERT [dbo].[tbl_EDI_ThietLapLienKet] OFF");
+
+                        StringBuilder sbVao = new StringBuilder();
+                        StringBuilder sbRa = new StringBuilder();
+                        StringBuilder sbLienKet = new StringBuilder();
+                        sbVao.AppendLine("SET IDENTITY_INSERT [dbo].[tbl_EDI_DauVao_DinhNghiaCot] ON");
+                        sbRa.AppendLine("SET IDENTITY_INSERT [dbo].[tbl_EDI_DauRa_DinhNghiaCot] ON");
+                        sbLienKet.AppendLine("SET IDENTITY_INSERT [dbo].[tbl_EDI_ThietLapLienKet_LienKetCot] ON");
+                        foreach (DataRow itemCol in colsSource)
+                        {
+                            string colName = itemCol["name"].ToString();
+                            int colType = Convert.ToInt32(itemCol["xtype"]);
+
+                            if (colName != "CreatedFrom" && colName != "ModifiedFrom")
+                            {
+                                int loai = -1;
+                                switch (colType)
+                                {
+                                    case 35: case 36: case 99: case 167: case 231: case 239: loai = 10; break;//string
+                                    case 175: loai = 3; break;//char
+                                    case 48: case 52: loai = 7; break;//smallint
+                                    case 56: loai = 8; break;//int
+                                    case 127: loai = 9; break;//bigint
+                                    case 60: case 106: loai = 5; break;//bit
+                                    case 104: loai = 1; break;//bit
+                                    case 58: case 61: case 189: loai = 4; break;//datetime
+                                    case 62: loai = 6; break;//double
+                                    case 173: loai = 2; break;//binary
+                                }
+                                sbVao.AppendLine($"INSERT [dbo].[tbl_EDI_DauVao_DinhNghiaCot] ([ID], [IDDauVao], [Code], [Name], [LoaiGiaTri], [IsDisabled], [IsDeleted], [Sort], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES ({dauvaoCol}, {dauvao}, N'{colName}', N'{colName}', {loai}, 0, 0, 1, N'admin', getdate(), N'admin', getdate())");
+                                sbRa.AppendLine($"INSERT [dbo].[tbl_EDI_DauRa_DinhNghiaCot] ([ID], [IDDauRa], [Code], [Name], [LoaiGiaTri], [IsDisabled], [IsDeleted], [Sort], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES ({dauraCol}, {daura}, N'{colName}', N'{colName}', {loai}, 0, 0, 1, N'admin', getdate(), N'admin', getdate())");
+                                sbLienKet.AppendLine($"INSERT [dbo].[tbl_EDI_ThietLapLienKet_LienKetCot] ([ID], [IDThietLapLienKet], [IDCotVao], [IDCotRa], [IsDisabled], [IsDeleted], [Sort], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate], [Code], [Name]) VALUES ({dauraCol}, {daura}, {dauvaoCol}, {dauraCol}, 0, 0, 1, N'admin', getdate(), N'admin', getdate(), N'{colName}', N'{colName}')");
+
+                                dauraCol++;
+                                dauvaoCol++;
+
+                                if (colName != "ID" && colName != "id")
+                                {
+                                    strCommandInsert += $",[{colName}]";
+                                    strCommandInsertParam += $",@{colName}";
+                                    strCommandUpdate += $",[{colName}]=@{colName}";
+                                }
+                            }
+                        }
+                        sbVao.AppendLine("SET IDENTITY_INSERT [dbo].[tbl_EDI_DauVao_DinhNghiaCot] OFF");
+                        sbRa.AppendLine("SET IDENTITY_INSERT [dbo].[tbl_EDI_DauRa_DinhNghiaCot] OFF");
+                        sbLienKet.AppendLine("SET IDENTITY_INSERT [dbo].[tbl_EDI_ThietLapLienKet_LienKetCot] OFF");
+
+                        sb.AppendLine("GO");
+                        sb.AppendLine(sbVao.ToString());
+                        sb.AppendLine("GO");
+                        sb.AppendLine(sbRa.ToString());
+                        sb.AppendLine("GO");
+                        sb.AppendLine(sbLienKet.ToString());
+                        sb.AppendLine("GO");
+
+                        strCommandInsert = strCommandInsert + ") " + strCommandInsertParam + ")";
+                        if (strCommandUpdate != string.Empty)
+                            strCommandUpdate = strCommandUpdate.Substring(1);
+                        strCommandUpdate = $"UPDATE [dbo].[{tablename}] SET " + strCommandUpdate + " WHERE [ID]=@ID";
+                        sb.AppendLine($"UPDATE [dbo].[tbl_EDI_CauHinhKetNoi] SET [Command]=N'IF NOT EXISTS(SELECT [ID] FROM [dbo].[{tablename}] WHERE [ID]=@ID) {strCommandInsert} ELSE {strCommandUpdate}' WHERE [ID]={dauraConnect}");
+                    }
+
+                    string str = sb.ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
     }
 }
