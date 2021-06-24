@@ -597,12 +597,12 @@ namespace database_compare
                         bool isidentity = drv["IsIdentity"].ToString().ToLower() == "true";
 
                         DataRow[] colsSource = _dtSourceColumns.Select("id=" + drv["id"]);
-                        int daura = 9680; //-5 or -10
-                        int dauraConnect = 9680; //-5 or -10
-                        int dauvao = 951; //-1
-                        int dauvaoConnect = 10951;//-1
-                        int dauraCol = 490401; //-200 or -300
-                        int dauvaoCol = 48461; //-30 or -50
+                        int daura = 9670; //-5 or -10
+                        int dauraConnect = 9670; //-5 or -10
+                        int dauvao = 949; //-1
+                        int dauvaoConnect = 10949;//-1
+                        int dauraCol = 489901; //-200 or -300
+                        int dauvaoCol = 48381; //-30 or -50
 
                         string strCommandInsert = $"INSERT INTO [dbo].[{tablename}]([ID]";
                         string strCommandInsertParam = $"VALUES(@ID";

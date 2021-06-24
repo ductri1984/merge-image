@@ -36,9 +36,7 @@
             this.mnuPlay = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuPause = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuShowOnTop = new System.Windows.Forms.ToolStripMenuItem();
-            this.axShockwaveFlash1 = new AxShockwaveFlashObjects.AxShockwaveFlash();
             this.menuStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.axShockwaveFlash1)).BeginInit();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -98,30 +96,16 @@
             this.mnuShowOnTop.Text = "Show on top";
             this.mnuShowOnTop.Click += new System.EventHandler(this.mnuShowOnTop_Click);
             // 
-            // axShockwaveFlash1
-            // 
-            this.axShockwaveFlash1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.axShockwaveFlash1.Enabled = true;
-            this.axShockwaveFlash1.Location = new System.Drawing.Point(0, 27);
-            this.axShockwaveFlash1.Name = "axShockwaveFlash1";
-            this.axShockwaveFlash1.OcxState = ((System.Windows.Forms.AxHost.State)(resources.GetObject("axShockwaveFlash1.OcxState")));
-            this.axShockwaveFlash1.Size = new System.Drawing.Size(428, 329);
-            this.axShockwaveFlash1.TabIndex = 2;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(428, 357);
-            this.Controls.Add(this.axShockwaveFlash1);
             this.Controls.Add(this.menuStrip1);
             this.Name = "Form1";
             this.Text = "Flash player";
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.axShockwaveFlash1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -136,7 +120,6 @@
         private System.Windows.Forms.ToolStripMenuItem mnuPlay;
         private System.Windows.Forms.ToolStripMenuItem mnuPause;
         private System.Windows.Forms.ToolStripMenuItem mnuShowOnTop;
-        private AxShockwaveFlashObjects.AxShockwaveFlash axShockwaveFlash1;
     }
 }
 
